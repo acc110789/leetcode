@@ -5,6 +5,7 @@
 #include <fstream>
 #include <map>
 #include <vector>
+#include <random>
 
 typedef std::string string_t;
 typedef std::vector<string_t> array_t;
@@ -16,6 +17,7 @@ static std::ifstream m_file;
 
 int main(int argc, char* argv[]) 
 {
+    std::mt19937 eng(time(NULL));
     string_t line;
     string_t search(argv[1] ? argv[1] : "好好学习");
     const int WORD_SIZE = 12;
@@ -38,12 +40,13 @@ int main(int argc, char* argv[])
         }
     }
     m_file.close();
-    std::cout << "DEBUG: " << __PRETTY_FUNCTION__ << " " << m_dict.size() 
-              << std::endl;
 
-    string_t searchStr = search.substr(0, 3);
+    string_t searchStr = search.substr(9, 12);
+    std::cout << searchStr << std::endl;
     if (m_dict.find(searchStr) != m_dict.end()) {
-        std::cout << m_dict[searchStr][0] << std::endl;
+        std::uniform_int_distribution<int> 
+            uniform_int_index(0, m_dict[searchStr].size() - 1);
+        std::cout << m_dict[searchStr][uniform_int_index(eng)] << std::endl;
     }
 
     return 0;

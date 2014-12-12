@@ -1,5 +1,5 @@
 CXX			= g++
-CXXFLAGS	= -g -O2 -Wall -fPIC
+CXXFLAGS	= -g -O2 -Wall -fPIC -std=c++11 -Werror
 INCPATH		=
 LIBPATH		=
 LIBS		=
