@@ -1,9 +1,9 @@
-#CC			= gcc
-CC			= clang
-#CXX     	= g++
-CXX			= clang++
-CFLAGS		= -g -pedantic -Wall -Wunused -Wunreachable-code
-CXXFLAGS 	= -g -pedantic -Wall -Wunused -Wunreachable-code
+CC			= gcc
+#CC			= clang
+CXX     	= g++
+#CXX			= clang++
+CFLAGS		= -g -pedantic -Wall -Wunused -std=gnu99
+CXXFLAGS 	= -g -pedantic -Wall -Wunused
 CPATH		=
 CXXPATH		=
 LIBPATH		=

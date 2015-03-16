@@ -7,7 +7,7 @@ main(int argc, char **argv)
 
     type = 123;
     switch (type) {
-        printf("SOMETHING\n");
+        [[[printf("SOMETHING\n");
     case 1:
         printf("1\n");
         break;
