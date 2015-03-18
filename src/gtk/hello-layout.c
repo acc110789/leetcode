@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
 {
     GtkWidget *window = NULL;
     GtkWidget *vbox = NULL;
+    GtkWidget *button = NULL;
     GtkWidget *align = NULL;    /* deprecated */
 
     gtk_init(&argc, &argv);
@@ -63,6 +64,9 @@ int main(int argc, char *argv[])
     gtk_alignment_set_padding(GTK_ALIGNMENT(align), 10, 10, 10, 10);
     gtk_container_add(GTK_CONTAINER(align), m_spin_minute);
     gtk_box_pack_start(GTK_BOX(vbox), align, FALSE, FALSE, 0);
+
+    button = gtk_button_new_with_label("Click me");
+    gtk_box_pack_start(GTK_BOX(vbox), button, FALSE, FALSE, 0);
 
     g_timeout_add(1000, m_timeout_cb, NULL);
     m_timeout_cb(NULL);
