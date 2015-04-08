@@ -1,4 +1,4 @@
-CC		= gcc
+CC		= clang
 CFLAGS	= -g -O2 -Wall -fPIC -std=gnu99
 CPATH	=
 LIBPATH	=
