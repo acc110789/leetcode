@@ -41,6 +41,8 @@
  * The MosesStackSwitcher widget was added in 3.10.
  */
 
+static GtkStack *m_stack = NULL;
+
 typedef struct _MosesStackSwitcherPrivate MosesStackSwitcherPrivate;
 struct _MosesStackSwitcherPrivate
 {
@@ -86,7 +88,7 @@ on_button_clicked (GtkWidget        *widget,
   if (!priv->in_child_changed)
     {
       child = g_object_get_data (G_OBJECT (widget), "stack-child");
-      gtk_stack_set_visible_child (priv->stack, child);
+      gtk_stack_set_visible_child (m_stack, child);
     }
 }
 
@@ -240,23 +242,27 @@ add_child (GtkWidget        *widget,
 
   priv = moses_stack_switcher_get_instance_private (self);
 
-  button = gtk_radio_button_new (NULL);
+  button = gtk_event_box_new();
+  //gtk_widget_set_events(button, GDK_BUTTON_PRESS_MASK);
+#if 0
   gtk_button_set_focus_on_click (GTK_BUTTON (button), FALSE);
   gtk_toggle_button_set_mode (GTK_TOGGLE_BUTTON (button), FALSE);
-
+#endif
   update_button (self, widget, button);
 
+#if 0
   group = gtk_container_get_children (GTK_CONTAINER (self));
   if (group != NULL)
     {
       gtk_radio_button_join_group (GTK_RADIO_BUTTON (button), GTK_RADIO_BUTTON (group->data));
       g_list_free (group);
     }
+#endif
 
   gtk_container_add (GTK_CONTAINER (self), button);
 
   g_object_set_data (G_OBJECT (button), "stack-child", widget);
-  g_signal_connect (button, "clicked", G_CALLBACK (on_button_clicked), self);
+  g_signal_connect (button, "button_press_event", G_CALLBACK (on_button_clicked), self);
   g_signal_connect (widget, "notify::visible", G_CALLBACK (on_title_icon_visible_updated), self);
   g_signal_connect (widget, "child-notify::title", G_CALLBACK (on_title_icon_visible_updated), self);
   g_signal_connect (widget, "child-notify::icon-name", G_CALLBACK (on_title_icon_visible_updated), self);
@@ -297,7 +303,9 @@ populate_switcher (MosesStackSwitcher *self)
   if (widget)
     {
       button = g_hash_table_lookup (priv->buttons, widget);
+#if 0
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
+#endif
     }
 }
 
@@ -326,7 +334,9 @@ on_child_changed (GtkWidget        *widget,
   if (button != NULL)
     {
       priv->in_child_changed = TRUE;
+#if 0
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
+#endif
       priv->in_child_changed = FALSE;
     }
 }
@@ -414,6 +424,8 @@ moses_stack_switcher_set_stack (MosesStackSwitcher *switcher,
   gtk_widget_queue_resize (GTK_WIDGET (switcher));
 
   g_object_notify (G_OBJECT (switcher), "stack");
+  
+  m_stack = stack;
 }
 
 /**
