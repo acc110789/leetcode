@@ -2,6 +2,8 @@
 
 #include <gtk/gtk.h>
 
+#include "mosesstackswitcher.h"
+
 static void m_destroy_cb(GtkWidget *widget, gpointer user_data) 
 { 
     gtk_main_quit(); 
@@ -51,9 +53,9 @@ int main(int argc, char *argv[])
     g_value_set_static_string(&value, "emblem-web");
     gtk_container_child_set_property(GTK_CONTAINER(stack), label, "icon-name", &value);
 
-    stack_switcher = gtk_stack_switcher_new();
+    stack_switcher = moses_stack_switcher_new();
     gtk_widget_set_halign(stack_switcher, GTK_ALIGN_CENTER);
-    gtk_stack_switcher_set_stack(GTK_STACK_SWITCHER(stack_switcher), GTK_STACK(stack));
+    moses_stack_switcher_set_stack(MOSES_STACK_SWITCHER(stack_switcher), GTK_STACK(stack));
 
     gtk_box_pack_start(GTK_BOX(vbox), stack, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), stack_switcher, FALSE, FALSE, 0);

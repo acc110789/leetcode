@@ -11,6 +11,7 @@ hello_cpu_SOURCES = hello-cpu.c	\
 hello_cpu_CFLAGS = ${GTK_TESTCASE_CFLAGS}
 hello_cpu_LDADD = ${GTK_TESTCASE_LIBS}
 
-hello_stack_SOURCES = hello-stack.c
+hello_stack_SOURCES = hello-stack.c	\
+					  mosesstackswitcher.c
 hello_stack_CFLAGS = ${GTK_TESTCASE_CFLAGS}
 hello_stack_LDADD = ${GTK_TESTCASE_LIBS}
