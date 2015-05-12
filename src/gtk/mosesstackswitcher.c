@@ -84,8 +84,9 @@ on_button_clicked (GtkWidget        *widget,
   MosesStackSwitcherPrivate *priv;
 
   priv = moses_stack_switcher_get_instance_private (self);
-
+#if 0
   if (!priv->in_child_changed)
+#endif
     {
       child = g_object_get_data (G_OBJECT (widget), "stack-child");
       gtk_stack_set_visible_child (m_stack, child);
@@ -243,7 +244,7 @@ add_child (GtkWidget        *widget,
   priv = moses_stack_switcher_get_instance_private (self);
 
   button = gtk_event_box_new();
-  //gtk_widget_set_events(button, GDK_BUTTON_PRESS_MASK);
+  gtk_widget_set_events(button, GDK_BUTTON_PRESS_MASK);
 #if 0
   gtk_button_set_focus_on_click (GTK_BUTTON (button), FALSE);
   gtk_toggle_button_set_mode (GTK_TOGGLE_BUTTON (button), FALSE);
