@@ -35,12 +35,14 @@ public:
     PinYinArray pinyins() const { return m_pinyins; }
 
     // FIXME: 需要判斷一下是否是漢字
+    // 0x7F 是ASCII（非扩展）表最后一个字符
     std::string getInitials(std::string str) 
     {
         std::string ret;
         
         for (unsigned int i = 0; i < str.size() / m_wordSize; i++) {
             std::string word = str.substr(i * m_wordSize, m_wordSize);
+            printf("%x %x %x\n", word[0], word[1], word[2]);
             ret += m_pinyins[word];
         }
 
@@ -59,8 +61,9 @@ int main(int argc, char* argv[])
 {
     PinYinInit* objPinYinInit = new PinYinInit;
 
-    std::cout << "澀兔子 " << objPinYinInit->getInitials("澀兔子 ") << std::endl;
+    std::cout << "澀兔子 " << objPinYinInit->getInitials("澀兔子") << std::endl;
     std::cout << "の " << objPinYinInit->getInitials("の") << std::endl;
+    std::cout << "Leslie " << objPinYinInit->getInitials("Leslie") << std::endl;
 
     delete objPinYinInit;
     objPinYinInit = nullptr;
