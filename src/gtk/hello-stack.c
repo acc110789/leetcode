@@ -36,22 +36,14 @@ int main(int argc, char *argv[])
     /* page 1 */
     calendar = gtk_calendar_new();
     gtk_stack_add_titled(GTK_STACK(stack), calendar, "calendar", "Page1");
-    GValue value = {0};
-    g_value_init(&value, G_TYPE_STRING);
-    g_value_set_static_string(&value, "x-office-calendar");
-    gtk_container_child_set_property(GTK_CONTAINER(stack), calendar, "icon-name", &value);
 
     /* page 2 */
     entry = gtk_entry_new();
     gtk_stack_add_titled(GTK_STACK(stack), entry, "entry", "Page2");
-    g_value_set_static_string(&value, "appointment-new");
-    gtk_container_child_set_property(GTK_CONTAINER(stack), entry, "icon-name", &value);
 
     /* page 3 */
     label = gtk_label_new("Hello");
     gtk_stack_add_titled(GTK_STACK(stack), label, "label", "Page3");
-    g_value_set_static_string(&value, "emblem-web");
-    gtk_container_child_set_property(GTK_CONTAINER(stack), label, "icon-name", &value);
 
     stack_switcher = moses_stack_switcher_new();
     gtk_widget_set_halign(stack_switcher, GTK_ALIGN_CENTER);

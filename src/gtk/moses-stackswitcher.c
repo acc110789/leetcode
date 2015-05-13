@@ -65,6 +65,8 @@ moses_stack_switcher_init (MosesStackSwitcher *switcher)
 
   priv = moses_stack_switcher_get_instance_private (switcher);
 
+  g_resources_register(moses_get_resource());
+
   priv->stack = NULL;
   priv->buttons = g_hash_table_new (g_direct_hash, g_direct_equal);
 
@@ -108,7 +110,7 @@ rebuild_child (GtkWidget   *self,
   if (icon_name != NULL)
     {
 #endif
-      button_child = gtk_image_new_from_icon_name (icon_name, GTK_ICON_SIZE_MENU);
+      button_child = gtk_image_new_from_resource("/org/moses/stackswitcher/dot.png");
       if (title != NULL)
         gtk_widget_set_tooltip_text (GTK_WIDGET (self), title);
 
@@ -172,12 +174,14 @@ update_button (MosesStackSwitcher *self,
   rebuild_child (button, icon_name, title);
 
   gtk_widget_set_visible (button, gtk_widget_get_visible (widget) && (title != NULL || icon_name != NULL));
-
+#if 0
   if (icon_name != NULL)
+#endif
     gtk_widget_set_size_request (button, -1, -1);
+#if 0
   else
     gtk_widget_set_size_request (button, 100, -1);
-
+#endif
   g_free (title);
   g_free (icon_name);
 
