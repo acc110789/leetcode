@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2013 Red Hat, Inc.
+ * Copyrgith (C) 2015 Leslie Zhai <xiang.zhai@i-soft.com.cn>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +18,7 @@
  *
  */
 
-#include "mosesstackswitcher.h"
+#include "moses-stackswitcher.h"
 
 #define GTK_PARAM_READWRITE G_PARAM_READWRITE|G_PARAM_STATIC_NAME|G_PARAM_STATIC_NICK|G_PARAM_STATIC_BLURB
 #define P_(x) (x)
@@ -40,8 +41,6 @@
  *
  * The MosesStackSwitcher widget was added in 3.10.
  */
-
-static GtkStack *m_stack = NULL;
 
 typedef struct _MosesStackSwitcherPrivate MosesStackSwitcherPrivate;
 struct _MosesStackSwitcherPrivate
@@ -84,12 +83,10 @@ on_button_clicked (GtkWidget        *widget,
   MosesStackSwitcherPrivate *priv;
 
   priv = moses_stack_switcher_get_instance_private (self);
-#if 0
   if (!priv->in_child_changed)
-#endif
     {
       child = g_object_get_data (G_OBJECT (widget), "stack-child");
-      gtk_stack_set_visible_child (m_stack, child);
+      gtk_stack_set_visible_child (priv->stack, child);
     }
 }
 
@@ -107,15 +104,17 @@ rebuild_child (GtkWidget   *self,
 
   button_child = NULL;
   context = gtk_widget_get_style_context (GTK_WIDGET (self));
-
+#if 0
   if (icon_name != NULL)
     {
+#endif
       button_child = gtk_image_new_from_icon_name (icon_name, GTK_ICON_SIZE_MENU);
       if (title != NULL)
         gtk_widget_set_tooltip_text (GTK_WIDGET (self), title);
 
       gtk_style_context_remove_class (context, "text-button");
       gtk_style_context_add_class (context, "image-button");
+#if 0
     }
   else if (title != NULL)
     {
@@ -126,7 +125,7 @@ rebuild_child (GtkWidget   *self,
       gtk_style_context_remove_class (context, "image-button");
       gtk_style_context_add_class (context, "text-button");
     }
-
+#endif
   if (button_child)
     {
       gtk_widget_set_halign (GTK_WIDGET (button_child), GTK_ALIGN_CENTER);
@@ -243,27 +242,23 @@ add_child (GtkWidget        *widget,
 
   priv = moses_stack_switcher_get_instance_private (self);
 
-  button = gtk_event_box_new();
+  button = gtk_radio_button_new(NULL);
   gtk_widget_set_events(button, GDK_BUTTON_PRESS_MASK);
-#if 0
   gtk_button_set_focus_on_click (GTK_BUTTON (button), FALSE);
   gtk_toggle_button_set_mode (GTK_TOGGLE_BUTTON (button), FALSE);
-#endif
   update_button (self, widget, button);
 
-#if 0
   group = gtk_container_get_children (GTK_CONTAINER (self));
   if (group != NULL)
     {
       gtk_radio_button_join_group (GTK_RADIO_BUTTON (button), GTK_RADIO_BUTTON (group->data));
       g_list_free (group);
     }
-#endif
 
   gtk_container_add (GTK_CONTAINER (self), button);
 
   g_object_set_data (G_OBJECT (button), "stack-child", widget);
-  g_signal_connect (button, "button_press_event", G_CALLBACK (on_button_clicked), self);
+  g_signal_connect (button, "clicked", G_CALLBACK (on_button_clicked), self);
   g_signal_connect (widget, "notify::visible", G_CALLBACK (on_title_icon_visible_updated), self);
   g_signal_connect (widget, "child-notify::title", G_CALLBACK (on_title_icon_visible_updated), self);
   g_signal_connect (widget, "child-notify::icon-name", G_CALLBACK (on_title_icon_visible_updated), self);
@@ -304,9 +299,7 @@ populate_switcher (MosesStackSwitcher *self)
   if (widget)
     {
       button = g_hash_table_lookup (priv->buttons, widget);
-#if 0
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
-#endif
     }
 }
 
@@ -335,9 +328,7 @@ on_child_changed (GtkWidget        *widget,
   if (button != NULL)
     {
       priv->in_child_changed = TRUE;
-#if 0
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
-#endif
       priv->in_child_changed = FALSE;
     }
 }
@@ -425,8 +416,6 @@ moses_stack_switcher_set_stack (MosesStackSwitcher *switcher,
   gtk_widget_queue_resize (GTK_WIDGET (switcher));
 
   g_object_notify (G_OBJECT (switcher), "stack");
-  
-  m_stack = stack;
 }
 
 /**

@@ -53,9 +53,9 @@ int main(int argc, char *argv[])
     m_spin_hour = gtk_spin_button_new_with_range(.0, 23.0, 1.0);
     g_signal_connect(m_spin_hour, "value-changed", G_CALLBACK(m_value_changed), NULL);
     gtk_widget_set_margin_top(m_spin_hour, 30);
-    gtk_widget_set_margin_right(m_spin_hour, 10);
+    gtk_widget_set_margin_end(m_spin_hour, 10);
     gtk_widget_set_margin_bottom(m_spin_hour, 30);
-    gtk_widget_set_margin_left(m_spin_hour, 10);
+    gtk_widget_set_margin_start(m_spin_hour, 10);
     gtk_box_pack_start(GTK_BOX(vbox), m_spin_hour, FALSE, FALSE, 0);
 
     m_spin_minute = gtk_spin_button_new_with_range(.0, 59.0, 1.0);
