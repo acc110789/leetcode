@@ -174,7 +174,7 @@ update_button (MosesStackSwitcher *self,
 #if 0
   if (icon_name != NULL)
 #endif
-    gtk_widget_set_size_request (button, 10, 10);
+    gtk_widget_set_size_request (button, -1, -1);
 #if 0
   else
     gtk_widget_set_size_request (button, 100, -1);
@@ -253,7 +253,7 @@ add_child (GtkWidget        *widget,
   group = gtk_container_get_children (GTK_CONTAINER (self));
   if (group != NULL)
     {
-      gtk_radio_button_join_group (GTK_RADIO_BUTTON (button), GTK_RADIO_BUTTON (group->data));
+      gtk_radio_button_join_group(GTK_RADIO_BUTTON(button), GTK_RADIO_BUTTON(group->data));
       g_list_free (group);
     }
 
@@ -301,9 +301,7 @@ populate_switcher (MosesStackSwitcher *self)
   if (widget)
     {
       button = g_hash_table_lookup (priv->buttons, widget);
-#if 0
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
-#endif
     }
 }
 
@@ -332,9 +330,7 @@ on_child_changed (GtkWidget        *widget,
   if (button != NULL)
     {
       priv->in_child_changed = TRUE;
-#if 0
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
-#endif
       priv->in_child_changed = FALSE;
     }
 }

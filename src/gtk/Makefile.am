@@ -12,6 +12,7 @@ hello_cpu_CFLAGS = $(GTK_TESTCASE_CFLAGS)
 hello_cpu_LDADD = $(GTK_TESTCASE_LIBS)
 
 hello_stack_SOURCES = hello-stack.c	\
-					  moses-stackswitcher.c
+					  moses-stackswitcher.c	\
+					  moses-iconview.c
 hello_stack_CFLAGS = $(GTK_TESTCASE_CFLAGS)
 hello_stack_LDADD = $(GTK_TESTCASE_LIBS)

@@ -3,6 +3,7 @@
 #include <gtk/gtk.h>
 
 #include "moses-stackswitcher.h"
+#include "moses-iconview.h"
 
 static void m_destroy_cb(GtkWidget *widget, gpointer user_data) 
 { 
@@ -15,6 +16,7 @@ int main(int argc, char *argv[])
     GtkWidget *vbox = NULL;
     GtkWidget *stack_switcher = NULL;
     GtkWidget *stack = NULL;
+    GtkWidget *icon_view = NULL;
     GtkWidget *calendar = NULL;
     GtkWidget *entry = NULL;
     GtkWidget *label = NULL;
@@ -31,11 +33,11 @@ int main(int argc, char *argv[])
     stack = gtk_stack_new();
     gtk_stack_set_transition_type(GTK_STACK(stack), 
                                   GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT);
-    gtk_stack_set_transition_duration(GTK_STACK(stack), 1000);
+    //gtk_stack_set_transition_duration(GTK_STACK(stack), 1000);
 
     /* page 1 */
-    calendar = gtk_calendar_new();
-    gtk_stack_add_titled(GTK_STACK(stack), calendar, "calendar", "Page1");
+    icon_view = moses_icon_view_new();
+    gtk_stack_add_titled(GTK_STACK(stack), icon_view, "icon_view", "Page1");
 
     /* page 2 */
     entry = gtk_entry_new();
