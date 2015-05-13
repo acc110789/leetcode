@@ -65,8 +65,6 @@ moses_stack_switcher_init (MosesStackSwitcher *switcher)
 
   priv = moses_stack_switcher_get_instance_private (switcher);
 
-  g_resources_register(moses_get_resource());
-
   priv->stack = NULL;
   priv->buttons = g_hash_table_new (g_direct_hash, g_direct_equal);
 
@@ -110,7 +108,6 @@ rebuild_child (GtkWidget   *self,
   if (icon_name != NULL)
     {
 #endif
-      button_child = gtk_image_new_from_resource("/org/moses/stackswitcher/dot.png");
       if (title != NULL)
         gtk_widget_set_tooltip_text (GTK_WIDGET (self), title);
 
@@ -177,7 +174,7 @@ update_button (MosesStackSwitcher *self,
 #if 0
   if (icon_name != NULL)
 #endif
-    gtk_widget_set_size_request (button, -1, -1);
+    gtk_widget_set_size_request (button, 10, 10);
 #if 0
   else
     gtk_widget_set_size_request (button, 100, -1);
@@ -247,9 +244,10 @@ add_child (GtkWidget        *widget,
   priv = moses_stack_switcher_get_instance_private (self);
 
   button = gtk_radio_button_new(NULL);
-  gtk_widget_set_events(button, GDK_BUTTON_PRESS_MASK);
   gtk_button_set_focus_on_click (GTK_BUTTON (button), FALSE);
+#if 0
   gtk_toggle_button_set_mode (GTK_TOGGLE_BUTTON (button), FALSE);
+#endif
   update_button (self, widget, button);
 
   group = gtk_container_get_children (GTK_CONTAINER (self));
@@ -303,7 +301,9 @@ populate_switcher (MosesStackSwitcher *self)
   if (widget)
     {
       button = g_hash_table_lookup (priv->buttons, widget);
+#if 0
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
+#endif
     }
 }
 
@@ -332,7 +332,9 @@ on_child_changed (GtkWidget        *widget,
   if (button != NULL)
     {
       priv->in_child_changed = TRUE;
+#if 0
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
+#endif
       priv->in_child_changed = FALSE;
     }
 }
