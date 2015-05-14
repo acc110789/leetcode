@@ -5,6 +5,8 @@
 #include "moses-stackswitcher.h"
 #include "moses-iconview.h"
 
+static GtkCssProvider *m_provider = NULL;
+
 static void m_destroy_cb(GtkWidget *widget, gpointer user_data) 
 { 
     gtk_main_quit(); 
@@ -12,6 +14,8 @@ static void m_destroy_cb(GtkWidget *widget, gpointer user_data)
 
 int main(int argc, char *argv[]) 
 {
+    GdkDisplay *display = NULL;
+    GdkScreen *screen = NULL;
     GtkWidget *window = NULL;
     GtkWidget *vbox = NULL;
     GtkWidget *stack_switcher = NULL;
@@ -22,6 +26,13 @@ int main(int argc, char *argv[])
     GtkWidget *label = NULL;
 
     gtk_init(&argc, &argv);
+
+    m_provider = gtk_css_provider_new();
+    display = gdk_display_get_default();
+    screen = gdk_display_get_default_screen(display);
+    gtk_style_context_add_provider_for_screen(screen, 
+        GTK_STYLE_PROVIDER(m_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    gtk_css_provider_load_from_path(m_provider, "./moses-radio.css", NULL);
 
     /* TODO: window */
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
