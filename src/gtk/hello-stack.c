@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     screen = gdk_display_get_default_screen(display);
     gtk_style_context_add_provider_for_screen(screen, 
         GTK_STYLE_PROVIDER(m_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    gtk_css_provider_load_from_path(m_provider, "./moses-radio.css", NULL);
+    gtk_css_provider_load_from_path(m_provider, "./moses-stack.css", NULL);
 
     /* TODO: window */
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -51,14 +51,19 @@ int main(int argc, char *argv[])
     gtk_stack_add_titled(GTK_STACK(stack), icon_view, "icon_view", "Page1");
 
     /* page 2 */
-    entry = gtk_entry_new();
-    gtk_stack_add_titled(GTK_STACK(stack), entry, "entry", "Page2");
+    gtk_stack_add_titled(GTK_STACK(stack), 
+        gtk_radio_button_new_with_label(NULL, "I`m radio"), "radio", "Page2");
 
     /* page 3 */
+    entry = gtk_entry_new();
+    gtk_stack_add_titled(GTK_STACK(stack), entry, "entry", "Page3");
+
+    /* page 4 */
     label = gtk_label_new("Hello");
-    gtk_stack_add_titled(GTK_STACK(stack), label, "label", "Page3");
+    gtk_stack_add_titled(GTK_STACK(stack), label, "label", "Page4");
 
     stack_switcher = moses_stack_switcher_new();
+    gtk_widget_set_name(stack_switcher, "moses-stackswitcher");
     gtk_widget_set_halign(stack_switcher, GTK_ALIGN_CENTER);
     moses_stack_switcher_set_stack(MOSES_STACK_SWITCHER(stack_switcher), GTK_STACK(stack));
 
