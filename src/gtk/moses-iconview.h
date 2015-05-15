@@ -1,5 +1,6 @@
 /* gtkiconview.h
  * Copyright (C) 2002, 2004  Anders Carlsson <andersca@gnome.org>
+ * Copyright (C) 2015 Leslie Zhai <xiang.zhai@i-soft.com.cn>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -67,6 +68,11 @@ typedef enum
   MOSES_ICON_VIEW_DROP_BELOW
 } MosesIconViewDropPosition;
 
+typedef enum {
+  MOSES_ICON_VIEW_BORDER_LEFT,
+  MOSES_ICON_VIEW_BORDER_RIGHT,
+} MosesIconViewBorder;
+
 struct _MosesIconView
 {
   GtkContainer parent;
@@ -82,6 +88,8 @@ struct _MosesIconViewClass
   void    (* item_activated)         (MosesIconView      *icon_view,
 				      GtkTreePath      *path);
   void    (* selection_changed)      (MosesIconView      *icon_view);
+  void    (* drag_border)            (MosesIconView      *icon_view, 
+                      MosesIconViewBorder border);
 
   /* Key binding signals */
   void    (* select_all)             (MosesIconView      *icon_view);

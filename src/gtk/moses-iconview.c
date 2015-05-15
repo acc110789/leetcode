@@ -1,5 +1,6 @@
 /* gtkiconview.c
  * Copyright (C) 2002, 2004  Anders Carlsson <andersca@gnu.org>
+ * Copyright (C) 2015 Leslie Zhai <xiang.zhai@i-soft.com.cn>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -165,6 +166,7 @@ enum
 {
   ITEM_ACTIVATED,
   SELECTION_CHANGED,
+  DRAG_BORDER,
   SELECT_ALL,
   UNSELECT_ALL,
   SELECT_CURSOR_ITEM,
@@ -890,6 +892,15 @@ moses_icon_view_class_init (MosesIconViewClass *klass)
 		  g_cclosure_marshal_VOID__VOID,
 		  G_TYPE_NONE, 0);
   
+  icon_view_signals[DRAG_BORDER] = 
+    g_signal_new("drag-border", 
+          G_TYPE_FROM_CLASS(gobject_class),
+          G_SIGNAL_RUN_FIRST,
+          G_STRUCT_OFFSET(MosesIconViewClass, drag_border),
+          NULL, NULL,
+          g_cclosure_marshal_VOID__INT,
+          G_TYPE_NONE, 1, G_TYPE_INT);
+
   /**
    * MosesIconView::select-all:
    * @iconview: the object on which the signal is emitted
@@ -6871,6 +6882,13 @@ moses_icon_view_drag_motion (GtkWidget      *widget,
   if (path)
     gtk_tree_path_free (path);
 
+  if (x < 40) {
+    g_signal_emit(icon_view, icon_view_signals[DRAG_BORDER], 0, 
+        MOSES_ICON_VIEW_BORDER_LEFT);
+  } else if (icon_view->priv->width - x < 40) {
+    g_signal_emit(icon_view, icon_view_signals[DRAG_BORDER], 0, 
+        MOSES_ICON_VIEW_BORDER_RIGHT);
+  }
   return TRUE;
 }
 
