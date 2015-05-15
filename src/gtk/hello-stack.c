@@ -1,79 +1,168 @@
 /* Copyright (C) 2014 - 2015 Leslie Zhai <xiang.zhai@i-soft.com.cn> */
 
 #include <gtk/gtk.h>
+#include <string.h>
 
 #include "moses-stackswitcher.h"
 #include "moses-iconview.h"
 
+enum {
+    COL_ICON, 
+    COL_NAME,
+    ICON_COLS
+};
+
+#define ICON_COUNT_LIMIT 256
+#define ICON_COUNT_PER_PAGE 28
+
 static GtkCssProvider *m_provider = NULL;
+static GdkScreen *m_screen = NULL;
+static GtkListStore *m_store = NULL;
+static unsigned int m_store_count = 0;
 
 static void m_destroy_cb(GtkWidget *widget, gpointer user_data) 
 { 
+    if (m_store) {
+        gtk_list_store_clear(m_store);
+        g_object_unref(m_store);
+        m_store = NULL;
+    }
+    
     gtk_main_quit(); 
+}
+
+static void m_fill_store() 
+{
+    GtkIconTheme *icon_theme;
+    GList *contexts;
+    GtkTreeIter iter;
+    char buf[16];
+    int l;
+
+    icon_theme = gtk_icon_theme_get_for_screen(m_screen);
+
+    contexts = gtk_icon_theme_list_contexts(icon_theme);
+    gtk_list_store_clear(m_store);
+
+    l = ICON_COUNT_LIMIT;
+    for (GList *i = contexts; i && l; i = g_list_next(i)) {
+        gchar *context = i->data;
+        GList *icon_names;
+
+        icon_names = gtk_icon_theme_list_icons(icon_theme, context);
+        for (GList *j = icon_names; j && l; j = g_list_next(j), l--) {
+            gchar *id = j->data;
+            GdkPixbuf *pixbuf = gtk_icon_theme_load_icon(icon_theme, id, 64, 
+                GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
+
+            gtk_list_store_append(m_store, &iter);
+            memset(buf, 0, sizeof(buf));
+            snprintf(buf, sizeof(buf) - 1, "%s", id);
+            gtk_list_store_set(m_store, &iter, COL_ICON, pixbuf, COL_NAME, buf, -1);
+
+            m_store_count++;
+        }
+
+        g_list_free_full(icon_names, g_free);
+    }
+
+    g_list_free_full(contexts, g_free);
 }
 
 int main(int argc, char *argv[]) 
 {
     GdkDisplay *display = NULL;
-    GdkScreen *screen = NULL;
     GtkWidget *window = NULL;
-    GtkWidget *vbox = NULL;
+    GtkWidget *overlay = NULL;
     GtkWidget *stack_switcher = NULL;
     GtkWidget *stack = NULL;
-    GtkWidget *icon_view = NULL;
-    GtkWidget *calendar = NULL;
-    GtkWidget *entry = NULL;
-    GtkWidget *label = NULL;
+    char buf[16] = {'\0'};
 
     gtk_init(&argc, &argv);
 
     m_provider = gtk_css_provider_new();
     display = gdk_display_get_default();
-    screen = gdk_display_get_default_screen(display);
-    gtk_style_context_add_provider_for_screen(screen, 
+    m_screen = gdk_display_get_default_screen(display);
+    gtk_style_context_add_provider_for_screen(m_screen, 
         GTK_STYLE_PROVIDER(m_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     gtk_css_provider_load_from_path(m_provider, "./moses-stack.css", NULL);
 
     /* TODO: window */
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
+    gtk_window_set_default_size(GTK_WINDOW(window), 1024, 600);
     g_signal_connect(window, "destroy", G_CALLBACK(m_destroy_cb), NULL);
 
-    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
 
+    /* TODO: overlay */
+    overlay = gtk_overlay_new();
+
+    /* TODO: store */
+    m_store = gtk_list_store_new(ICON_COLS, GDK_TYPE_PIXBUF, G_TYPE_STRING);
+    m_fill_store();
+    printf("DEBUG: store count %d\n", m_store_count);
+
+    /* TODO: stack */
     stack = gtk_stack_new();
     gtk_stack_set_transition_type(GTK_STACK(stack), 
                                   GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT);
-    //gtk_stack_set_transition_duration(GTK_STACK(stack), 1000);
 
-    /* page 1 */
-    icon_view = moses_icon_view_new();
-    gtk_stack_add_titled(GTK_STACK(stack), icon_view, "icon_view", "Page1");
+    /* TODO: pagenation */
+    for (int i = 0; i <= m_store_count / ICON_COUNT_PER_PAGE; i++) {
+        GtkWidget *sw = gtk_scrolled_window_new(NULL, NULL);
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sw), 
+            GTK_POLICY_NEVER, GTK_POLICY_NEVER);
 
-    /* page 2 */
-    gtk_stack_add_titled(GTK_STACK(stack), 
-        gtk_radio_button_new_with_label(NULL, "I`m radio"), "radio", "Page2");
+        GtkListStore *page_store = gtk_list_store_new(ICON_COLS, GDK_TYPE_PIXBUF, 
+            G_TYPE_STRING);
+        GtkTreeModel *tmp_model = GTK_TREE_MODEL(m_store);
+        GtkTreeIter j, k;
+        gboolean r = gtk_tree_model_get_iter_first(tmp_model, &j);
+        int n;
 
-    /* page 3 */
-    entry = gtk_entry_new();
-    gtk_stack_add_titled(GTK_STACK(stack), entry, "entry", "Page3");
+        n = i * ICON_COUNT_PER_PAGE;
+        while (r && n--) 
+            r = gtk_tree_model_iter_next(tmp_model, &j);
 
-    /* page 4 */
-    label = gtk_label_new("Hello");
-    gtk_stack_add_titled(GTK_STACK(stack), label, "label", "Page4");
+        n = ICON_COUNT_PER_PAGE;
+        while (r && n--) {
+            char *name = NULL;
+            GdkPixbuf *pixbuf = NULL;
 
+            gtk_tree_model_get(tmp_model, &j, COL_NAME, &name, COL_ICON, &pixbuf, -1);
+            gtk_list_store_append(page_store, &k);
+            gtk_list_store_set(page_store, &k, COL_ICON, pixbuf, COL_NAME, name, -1);
+
+            r = gtk_tree_model_iter_next(tmp_model, &j);
+        }
+
+        GtkWidget *icon_view = gtk_icon_view_new_with_model(GTK_TREE_MODEL(page_store));
+        g_object_set(G_OBJECT(icon_view),
+            "margin", 10, 
+            "column-spacing", 10, "row-spacing", 30, 
+            "item-width", 90, "item-padding", 10,
+            "activate-on-single-click", FALSE,
+            NULL);
+        gtk_container_add(GTK_CONTAINER(sw), icon_view);
+        gtk_icon_view_set_text_column(GTK_ICON_VIEW(icon_view), COL_NAME);
+        gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(icon_view), COL_ICON);
+        
+        memset(buf, 0, sizeof(buf));
+        snprintf(buf, sizeof(buf) - 1, "%d", i + 1);
+        gtk_stack_add_titled(GTK_STACK(stack), sw, buf, buf);
+    }
+
+    /* TODO: stack switcher */
     stack_switcher = moses_stack_switcher_new();
     gtk_widget_set_name(stack_switcher, "moses-stackswitcher");
     gtk_widget_set_halign(stack_switcher, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(stack_switcher, GTK_ALIGN_END);
     moses_stack_switcher_set_stack(MOSES_STACK_SWITCHER(stack_switcher), GTK_STACK(stack));
 
-    gtk_box_pack_start(GTK_BOX(vbox), stack, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(vbox), stack_switcher, FALSE, FALSE, 0);
+    gtk_container_add(GTK_CONTAINER(overlay), stack);
+    gtk_overlay_add_overlay(GTK_OVERLAY(overlay), stack_switcher);
 
-    /* TODO: add */
-    gtk_container_add(GTK_CONTAINER(window), vbox);
-    gtk_container_set_border_width(GTK_CONTAINER(window), 10);
-
+    /* TODO: show */
+    gtk_container_add(GTK_CONTAINER(window), overlay);
     gtk_widget_show_all(window);
 
     /* TODO: main loop */
