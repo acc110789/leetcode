@@ -19,6 +19,7 @@ static GtkCssProvider *m_provider = NULL;
 static GdkScreen *m_screen = NULL;
 static GtkListStore *m_store = NULL;
 static unsigned int m_store_count = 0;
+static GtkWidget *m_stack = NULL;
 
 static void m_destroy_cb(GtkWidget *widget, gpointer user_data) 
 { 
@@ -73,7 +74,25 @@ static void m_drag_border_cb(MosesIconView *icon_view,
                              MosesIconViewBorder border, 
                              gpointer user_data) 
 {
-    printf("DEBUG: %s %d\n", __func__, border);
+    gchar *stack_child_name = NULL;
+    GtkWidget *stack_child = NULL;
+    unsigned int index;
+    char buf[16] = {'\0'};
+
+    stack_child_name = gtk_stack_get_visible_child_name(m_stack);
+    if (stack_child_name == NULL)
+        return;
+
+    index = border == MOSES_ICON_VIEW_BORDER_LEFT ? 
+            atoi(stack_child_name) - 1 : 
+            atoi(stack_child_name) + 1;
+    snprintf(buf, sizeof(buf) - 1, "%d", index);
+    
+    stack_child = gtk_stack_get_child_by_name(m_stack, buf);
+    if (stack_child == NULL)
+        return;
+
+    gtk_stack_set_visible_child(m_stack, stack_child);
 }
 
 int main(int argc, char *argv[]) 
@@ -82,7 +101,6 @@ int main(int argc, char *argv[])
     GtkWidget *window = NULL;
     GtkWidget *overlay = NULL;
     GtkWidget *stack_switcher = NULL;
-    GtkWidget *stack = NULL;
     char buf[16] = {'\0'};
 
     gtk_init(&argc, &argv);
@@ -109,8 +127,8 @@ int main(int argc, char *argv[])
     printf("DEBUG: store count %d\n", m_store_count);
 
     /* TODO: stack */
-    stack = gtk_stack_new();
-    gtk_stack_set_transition_type(GTK_STACK(stack), 
+    m_stack = gtk_stack_new();
+    gtk_stack_set_transition_type(GTK_STACK(m_stack), 
                                   GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT);
 
     /* TODO: pagenation */
@@ -158,7 +176,7 @@ int main(int argc, char *argv[])
         
         memset(buf, 0, sizeof(buf));
         snprintf(buf, sizeof(buf) - 1, "%d", i + 1);
-        gtk_stack_add_titled(GTK_STACK(stack), sw, buf, buf);
+        gtk_stack_add_titled(GTK_STACK(m_stack), sw, buf, buf);
     }
 
     /* TODO: stack switcher */
@@ -166,9 +184,10 @@ int main(int argc, char *argv[])
     gtk_widget_set_name(stack_switcher, "moses-stackswitcher");
     gtk_widget_set_halign(stack_switcher, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(stack_switcher, GTK_ALIGN_END);
-    moses_stack_switcher_set_stack(MOSES_STACK_SWITCHER(stack_switcher), GTK_STACK(stack));
+    moses_stack_switcher_set_stack(MOSES_STACK_SWITCHER(stack_switcher), 
+        GTK_STACK(m_stack));
 
-    gtk_container_add(GTK_CONTAINER(overlay), stack);
+    gtk_container_add(GTK_CONTAINER(overlay), m_stack);
     gtk_overlay_add_overlay(GTK_OVERLAY(overlay), stack_switcher);
 
     /* TODO: show */
