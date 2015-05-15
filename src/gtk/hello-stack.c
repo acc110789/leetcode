@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
             r = gtk_tree_model_iter_next(tmp_model, &j);
         }
 
-        GtkWidget *icon_view = gtk_icon_view_new_with_model(GTK_TREE_MODEL(page_store));
+        GtkWidget *icon_view = moses_icon_view_new_with_model(GTK_TREE_MODEL(page_store));
         g_object_set(G_OBJECT(icon_view),
             "margin", 10, 
             "column-spacing", 10, "row-spacing", 30, 
@@ -143,8 +143,9 @@ int main(int argc, char *argv[])
             "activate-on-single-click", FALSE,
             NULL);
         gtk_container_add(GTK_CONTAINER(sw), icon_view);
-        gtk_icon_view_set_text_column(GTK_ICON_VIEW(icon_view), COL_NAME);
-        gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(icon_view), COL_ICON);
+        moses_icon_view_set_text_column(MOSES_ICON_VIEW(icon_view), COL_NAME);
+        moses_icon_view_set_pixbuf_column(MOSES_ICON_VIEW(icon_view), COL_ICON);
+        moses_icon_view_set_reorderable(MOSES_ICON_VIEW(icon_view), TRUE);
         
         memset(buf, 0, sizeof(buf));
         snprintf(buf, sizeof(buf) - 1, "%d", i + 1);
