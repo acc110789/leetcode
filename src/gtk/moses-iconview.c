@@ -166,7 +166,6 @@ enum
 {
   ITEM_ACTIVATED,
   SELECTION_CHANGED,
-  DRAG_BORDER,
   SELECT_ALL,
   UNSELECT_ALL,
   SELECT_CURSOR_ITEM,
@@ -891,15 +890,6 @@ moses_icon_view_class_init (MosesIconViewClass *klass)
 		  NULL, NULL,
 		  g_cclosure_marshal_VOID__VOID,
 		  G_TYPE_NONE, 0);
-  
-  icon_view_signals[DRAG_BORDER] = 
-    g_signal_new("drag-border", 
-          G_TYPE_FROM_CLASS(gobject_class),
-          G_SIGNAL_RUN_FIRST,
-          G_STRUCT_OFFSET(MosesIconViewClass, drag_border),
-          NULL, NULL,
-          g_cclosure_marshal_VOID__INT,
-          G_TYPE_NONE, 1, G_TYPE_INT);
 
   /**
    * MosesIconView::select-all:
@@ -6882,13 +6872,6 @@ moses_icon_view_drag_motion (GtkWidget      *widget,
   if (path)
     gtk_tree_path_free (path);
 
-  if (x < 40) {
-    g_signal_emit(icon_view, icon_view_signals[DRAG_BORDER], 0, 
-        MOSES_ICON_VIEW_BORDER_LEFT);
-  } else if (icon_view->priv->width - x < 40) {
-    g_signal_emit(icon_view, icon_view_signals[DRAG_BORDER], 0, 
-        MOSES_ICON_VIEW_BORDER_RIGHT);
-  }
   return TRUE;
 }
 

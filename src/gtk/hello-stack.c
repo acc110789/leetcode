@@ -70,22 +70,33 @@ static void m_fill_store()
     g_list_free_full(contexts, g_free);
 }
 
-static void m_drag_border_cb(MosesIconView *icon_view, 
-                             MosesIconViewBorder border, 
+static void m_drag_motion_cb(MosesIconView *icon_view, 
+                             GdkDragContext *context, 
+                             int x, 
+                             int y, 
+                             guint time,
                              gpointer user_data) 
 {
     gchar *stack_child_name = NULL;
     GtkWidget *stack_child = NULL;
-    unsigned int index;
+    unsigned int index = 0;
     char buf[16] = {'\0'};
+    GtkAllocation allocation;
+
+    gtk_widget_get_allocation(icon_view, &allocation);
 
     stack_child_name = gtk_stack_get_visible_child_name(m_stack);
     if (stack_child_name == NULL)
         return;
 
-    index = border == MOSES_ICON_VIEW_BORDER_LEFT ? 
-            atoi(stack_child_name) - 1 : 
-            atoi(stack_child_name) + 1;
+    if (x < 40)
+        index = atoi(stack_child_name) - 1;
+    else if (x > allocation.width - 40)
+        index = atoi(stack_child_name) + 1;
+    
+    if (index == 0)
+        return;
+
     snprintf(buf, sizeof(buf) - 1, "%d", index);
     
     stack_child = gtk_stack_get_child_by_name(m_stack, buf);
@@ -162,7 +173,7 @@ int main(int argc, char *argv[])
 
         GtkWidget *icon_view = moses_icon_view_new_with_model(GTK_TREE_MODEL(page_store));
         g_object_connect(G_OBJECT(icon_view), 
-            "signal::drag-border", m_drag_border_cb, NULL, NULL);
+            "signal::drag-motion", m_drag_motion_cb, NULL, NULL);
         g_object_set(G_OBJECT(icon_view),
             "margin", 10, 
             "column-spacing", 10, "row-spacing", 30, 

@@ -88,8 +88,6 @@ struct _MosesIconViewClass
   void    (* item_activated)         (MosesIconView      *icon_view,
 				      GtkTreePath      *path);
   void    (* selection_changed)      (MosesIconView      *icon_view);
-  void    (* drag_border)            (MosesIconView      *icon_view, 
-                      MosesIconViewBorder border);
 
   /* Key binding signals */
   void    (* select_all)             (MosesIconView      *icon_view);
