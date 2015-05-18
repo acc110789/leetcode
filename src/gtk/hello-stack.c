@@ -6,14 +6,26 @@
 #include "moses-stackswitcher.h"
 #include "moses-iconview.h"
 
+#define ICON_COUNT_LIMIT 256
+#define ICON_COUNT_PER_PAGE 28
+
 enum {
     COL_ICON, 
     COL_NAME,
     ICON_COLS
 };
 
-#define ICON_COUNT_LIMIT 256
-#define ICON_COUNT_PER_PAGE 28
+enum {
+    TARGET_INT32, 
+    TARGET_STRING,
+};
+
+static GtkTargetEntry target_list[] = {
+    { "INTEGER",    0, TARGET_INT32 },
+    { "STRING",     0, TARGET_STRING },
+};
+
+static guint n_targets = G_N_ELEMENTS(target_list);
 
 static GtkCssProvider *m_provider = NULL;
 static GdkScreen *m_screen = NULL;
@@ -70,12 +82,12 @@ static void m_fill_store()
     g_list_free_full(contexts, g_free);
 }
 
-static void m_drag_motion_cb(MosesIconView *icon_view, 
-                             GdkDragContext *context, 
-                             int x, 
-                             int y, 
-                             guint time,
-                             gpointer user_data) 
+static gboolean m_drag_motion_cb(MosesIconView *icon_view, 
+                                 GdkDragContext *context, 
+                                 int x, 
+                                 int y, 
+                                 guint time,
+                                 gpointer user_data) 
 {
     gchar *stack_child_name = NULL;
     GtkWidget *stack_child = NULL;
@@ -87,23 +99,43 @@ static void m_drag_motion_cb(MosesIconView *icon_view,
 
     stack_child_name = gtk_stack_get_visible_child_name(m_stack);
     if (stack_child_name == NULL)
-        return;
+        return FALSE;
 
     if (x < 40)
         index = atoi(stack_child_name) - 1;
     else if (x > allocation.width - 40)
         index = atoi(stack_child_name) + 1;
     
-    if (index == 0)
-        return;
+    if (index) {
+        snprintf(buf, sizeof(buf) - 1, "%d", index);
+        stack_child = gtk_stack_get_child_by_name(m_stack, buf);
+        if (stack_child)
+            gtk_stack_set_visible_child(m_stack, stack_child);
+    }
 
-    snprintf(buf, sizeof(buf) - 1, "%d", index);
-    
-    stack_child = gtk_stack_get_child_by_name(m_stack, buf);
-    if (stack_child == NULL)
-        return;
+    return FALSE;
+}
 
-    gtk_stack_set_visible_child(m_stack, stack_child);
+static void m_drag_data_get_cb(MosesIconView *icon_view, 
+                               GdkDragContext *context, 
+                               GtkSelectionData *data, 
+                               guint info, 
+                               guint time, 
+                               gpointer user_data) 
+{
+    printf("DEBUG: %s %d %d\n", __func__, info, time);
+}
+
+static void m_drag_data_received_cb(MosesIconView *icon_view, 
+                                    GdkDragContext *context, 
+                                    int x, 
+                                    int y, 
+                                    GtkSelectionData *data, 
+                                    guint info, 
+                                    guint time, 
+                                    gpointer user_data) 
+{
+    printf("DEBUG: %s %d %d\n", __func__, info, time);
 }
 
 int main(int argc, char *argv[]) 
@@ -172,8 +204,22 @@ int main(int argc, char *argv[])
         }
 
         GtkWidget *icon_view = moses_icon_view_new_with_model(GTK_TREE_MODEL(page_store));
+        gtk_drag_dest_set(icon_view, 
+                          GTK_DEST_DEFAULT_ALL, 
+                          target_list, 
+                          n_targets, 
+                          GDK_ACTION_MOVE);
+        gtk_drag_source_set(icon_view, 
+                            GDK_BUTTON1_MASK, 
+                            target_list, 
+                            n_targets, 
+                            GDK_ACTION_MOVE);
+
         g_object_connect(G_OBJECT(icon_view), 
-            "signal::drag-motion", m_drag_motion_cb, NULL, NULL);
+            "signal::drag-motion", m_drag_motion_cb, NULL, 
+            "signal::drag-data-get", m_drag_data_get_cb, NULL,
+            "signal::drag-data-received", m_drag_data_received_cb, NULL,
+            NULL);
         g_object_set(G_OBJECT(icon_view),
             "margin", 10, 
             "column-spacing", 10, "row-spacing", 30, 
@@ -184,7 +230,7 @@ int main(int argc, char *argv[])
         moses_icon_view_set_text_column(MOSES_ICON_VIEW(icon_view), COL_NAME);
         moses_icon_view_set_pixbuf_column(MOSES_ICON_VIEW(icon_view), COL_ICON);
         moses_icon_view_set_reorderable(MOSES_ICON_VIEW(icon_view), TRUE);
-        
+
         memset(buf, 0, sizeof(buf));
         snprintf(buf, sizeof(buf) - 1, "%d", i + 1);
         gtk_stack_add_titled(GTK_STACK(m_stack), sw, buf, buf);

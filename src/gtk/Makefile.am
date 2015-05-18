@@ -1,6 +1,7 @@
 noinst_PROGRAMS = hello_layout	\
 				  hello_cpu	\
-				  hello_stack
+				  hello_stack	\
+				  hello_dnd
 
 hello_layout_SOURCES = hello-layout.c
 hello_layout_CFLAGS = $(GTK_TESTCASE_CFLAGS)
@@ -16,3 +17,7 @@ hello_stack_SOURCES = hello-stack.c	\
 					  moses-iconview.c
 hello_stack_CFLAGS = $(GTK_TESTCASE_CFLAGS)
 hello_stack_LDADD = $(GTK_TESTCASE_LIBS)
+
+hello_dnd_SOURCES = hello-dnd.c
+hello_dnd_CFLAGS = $(GTK_TESTCASE_CFLAGS)
+hello_dnd_LDADD = $(GTK_TESTCASE_LIBS)
