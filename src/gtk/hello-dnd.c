@@ -375,6 +375,13 @@ main(int argc, char **argv)
         GTK_DEST_DEFAULT_ALL, 
         target_list, 
         n_targets, 
+        GDK_ACTION_COPY);
+
+    gtk_drag_dest_set(
+        icon_view_source, 
+        GTK_DEST_DEFAULT_ALL, 
+        target_list, 
+        n_targets, 
         GDK_ACTION_COPY
     );
 
@@ -427,6 +434,9 @@ main(int argc, char **argv)
 
     g_signal_connect (coin_source, "drag-end",
                 G_CALLBACK (drag_end_handl), NULL);
+    
+    g_signal_connect(icon_view_source, "drag-data-get", 
+            G_CALLBACK(drag_data_get_handl), NULL);
 
 
     /* Show the widgets */

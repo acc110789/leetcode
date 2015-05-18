@@ -208,12 +208,12 @@ int main(int argc, char *argv[])
                           GTK_DEST_DEFAULT_ALL, 
                           target_list, 
                           n_targets, 
-                          GDK_ACTION_MOVE);
+                          GDK_ACTION_COPY);
         gtk_drag_source_set(icon_view, 
                             GDK_BUTTON1_MASK, 
                             target_list, 
                             n_targets, 
-                            GDK_ACTION_MOVE);
+                            GDK_ACTION_COPY);
 
         g_object_connect(G_OBJECT(icon_view), 
             "signal::drag-motion", m_drag_motion_cb, NULL, 
