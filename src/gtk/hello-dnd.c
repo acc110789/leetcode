@@ -25,23 +25,28 @@
 #define _WORD   16
 #define _DWORD  32
 
+enum {
+    COL_ICON,
+    COL_NAME,
+    ICON_COLS,
+};
 
 /******************************************************************************/
 /* Define a list of data types called "targets" that a destination widget will
  * accept. The string type is arbitrary, and negotiated between DnD widgets by
  * the developer. An enum or GQuark can serve as the integer target id. */
 enum {
-        TARGET_INT32,
-        TARGET_STRING,
-        TARGET_ROOTWIN
+    TARGET_INT32,
+    TARGET_STRING,
+    TARGET_ROOTWIN
 };
 
 /* datatype (string), restrictions on DnD (GtkTargetFlags), datatype (int) */
 static GtkTargetEntry target_list[] = {
-        { "INTEGER",    0, TARGET_INT32 },
-        { "STRING",     0, TARGET_STRING },
-        { "text/plain", 0, TARGET_STRING },
-        { "application/x-rootwindow-drop", 0, TARGET_ROOTWIN }
+    { "INTEGER",    0, TARGET_INT32 },
+    { "STRING",     0, TARGET_STRING },
+    { "text/plain", 0, TARGET_STRING },
+    { "application/x-rootwindow-drop", 0, TARGET_ROOTWIN }
 };
 
 static guint n_targets = G_N_ELEMENTS (target_list);
@@ -60,56 +65,54 @@ drag_data_received_handl
         GtkSelectionData *selection_data, guint target_type, guint time,
         gpointer data)
 {
-        glong   *_idata;
-        gchar   *_sdata;
+    glong   *_idata;
+    gchar   *_sdata;
 
-        gboolean dnd_success = FALSE;
-        gboolean delete_selection_data = FALSE;
+    gboolean dnd_success = FALSE;
+    gboolean delete_selection_data = FALSE;
 
-        const gchar *name = gtk_widget_get_name (widget);
-        g_print ("%s: drag_data_received_handl\n", name);
+    const gchar *name = gtk_widget_get_name (widget);
+    g_print ("%s: drag_data_received_handl\n", name);
 
 
-        /* Deal with what we are given from source */
-        if((selection_data != NULL) && (gtk_selection_data_get_length(selection_data) >= 0))
-        {
-                if (gdk_drag_context_get_suggested_action(context) == GDK_ACTION_ASK)
-                {
-                /* Ask the user to move or copy, then set the context action. */
-                }
-
-                if (gdk_drag_context_get_suggested_action(context) == GDK_ACTION_MOVE)
-                        delete_selection_data = TRUE;
-
-                /* Check that we got the format we can use */
-                g_print (" Receiving ");
-                switch (target_type)
-                {
-                        case TARGET_INT32:
-                                _idata = (glong*)gtk_selection_data_get_data(selection_data);
-                                g_print ("integer: %ld", *_idata);
-                                dnd_success = TRUE;
-                                break;
-
-                        case TARGET_STRING:
-                                _sdata = (gchar*)gtk_selection_data_get_data(selection_data);
-                                g_print ("string: %s", _sdata);
-                                dnd_success = TRUE;
-                                break;
-
-                        default:
-                                g_print ("nothing good");
-                }
-
-                g_print (".\n");
+    /* Deal with what we are given from source */
+    printf("DEBUG: %x\n", gtk_selection_data_get_data(selection_data));
+    if (selection_data != NULL && 
+       gtk_selection_data_get_length(selection_data) >= 0) {
+        if (gdk_drag_context_get_suggested_action(context) == GDK_ACTION_ASK) {
+            /* Ask the user to move or copy, then set the context action. */
         }
 
-        if (dnd_success == FALSE)
-        {
-                g_print ("DnD data transfer failed!\n");
+        if (gdk_drag_context_get_suggested_action(context) == GDK_ACTION_MOVE)
+            delete_selection_data = TRUE;
+
+        /* Check that we got the format we can use */
+        g_print (" Receiving ");
+        switch (target_type) {
+        case TARGET_INT32:
+            _idata = (glong*)gtk_selection_data_get_data(selection_data);
+            g_print ("integer: %ld", *_idata);
+            dnd_success = TRUE;
+            break;
+
+        case TARGET_STRING:
+            _sdata = (gchar*)gtk_selection_data_get_data(selection_data);
+            g_print ("string: %s", _sdata);
+            dnd_success = TRUE;
+            break;
+
+        default:
+            g_print ("nothing good");
         }
 
-        gtk_drag_finish (context, dnd_success, delete_selection_data, time);
+        g_print (".\n");
+    }
+
+    if (dnd_success == FALSE) {
+        g_print ("DnD data transfer failed!\n");
+    }
+
+    gtk_drag_finish(context, dnd_success, delete_selection_data, time);
 }
 
 /* Emitted when a drag is over the destination */
@@ -276,107 +279,161 @@ drag_end_handl
         g_print ("%s: drag_end_handl\n", name);
 }
 
+static void m_store_add_item(GtkIconTheme *icon_theme, 
+                             GtkListStore *store, 
+                             char *id) 
+{
+    GdkPixbuf *pixbuf;
+    GtkTreeIter iter;
+
+    gtk_list_store_append(store, &iter);
+    pixbuf = gtk_icon_theme_load_icon(icon_theme, id, 64,              
+        GTK_ICON_LOOKUP_FORCE_SIZE, NULL);                                      
+    gtk_list_store_set(store, &iter, COL_ICON, pixbuf, COL_NAME, id, -1);
+}
 
 /******************************************************************************/
 int
-main (int argc, char **argv)
+main(int argc, char **argv)
 {
-        GtkWidget       *window;
-        GtkWidget       *hbox;
-        GtkWidget       *coin_source;
-        GtkWidget       *well_dest;
-        GtkWidget       *directions_label;
-        guint           win_xsize       = 450;
-        guint           win_ysize       = 50;
-        guint           spacing         = 5;
+    GdkScreen       *screen;
+    GtkIconTheme    *icon_theme;
+    GtkListStore    *store;
+    GtkWidget       *window;
+    GtkWidget       *vbox;
+    GtkWidget       *hbox;
+    GtkWidget       *coin_source;
+    GtkWidget       *well_dest;
+    GtkWidget       *directions_label;
+    GtkWidget       *icon_view_source;
+    GtkWidget       *icon_view_dest;
+    guint           win_xsize       = 800;
+    guint           win_ysize       = 600;
+    guint           spacing         = 5;
+
+    /* Always start GTK+ first! */
+    gtk_init (&argc, &argv);
 
 
-        /* Always start GTK+ first! */
-        gtk_init (&argc, &argv);
+    /* Create the widgets */
+    window  = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+    vbox    = gtk_box_new(GTK_ORIENTATION_VERTICAL, spacing);
+    hbox    = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, spacing);
+
+    coin_source     = gtk_button_new_with_label("[coins]");
+    well_dest       = gtk_label_new("[a well]");
+
+    directions_label = gtk_label_new("drag a coin and drop it in the well");
+
+    screen = gdk_display_get_default_screen(gdk_display_get_default());
+    icon_theme = gtk_icon_theme_get_for_screen(screen);
+    store = gtk_list_store_new(ICON_COLS, GDK_TYPE_PIXBUF, G_TYPE_STRING);
+    m_store_add_item(icon_theme, store, "gtk-about");
+    m_store_add_item(icon_theme, store, "edit-copy");
+    m_store_add_item(icon_theme, store, "image");
+
+    icon_view_source = gtk_icon_view_new_with_model(GTK_TREE_MODEL(store));
+    gtk_widget_set_size_request(icon_view_source, 300, 400);
+    gtk_icon_view_set_text_column(GTK_ICON_VIEW(icon_view_source), COL_NAME);
+    gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(icon_view_source), COL_ICON);
+    
+    icon_view_dest = gtk_icon_view_new();
+    gtk_widget_set_size_request(icon_view_dest, 300, 400);
+
+    /* Pack the widgets */
+    gtk_container_add (GTK_CONTAINER (window), vbox);
+
+    gtk_container_add (GTK_CONTAINER (hbox), coin_source);
+    gtk_container_add (GTK_CONTAINER (hbox), directions_label);
+    gtk_container_add (GTK_CONTAINER (hbox), well_dest);
+
+    gtk_container_add(GTK_CONTAINER(vbox), hbox);
+
+    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, spacing);
+    gtk_container_add(GTK_CONTAINER(hbox), icon_view_source);
+    gtk_container_add(GTK_CONTAINER(hbox), icon_view_dest);
+
+    gtk_container_add(GTK_CONTAINER(vbox), hbox);
+
+    /* Make the window big enough for some DnD action */
+    gtk_window_set_default_size (GTK_WINDOW(window), win_xsize, win_ysize);
 
 
-        /* Create the widgets */
-        window  = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-        hbox    = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, spacing);
+    /* Make the "well label" a DnD destination. */
+    gtk_drag_dest_set
+    (
+        well_dest,              /* widget that will accept a drop */
+        GTK_DEST_DEFAULT_MOTION /* default actions for dest on DnD */
+        | GTK_DEST_DEFAULT_HIGHLIGHT,
+        target_list,            /* lists of target to support */
+        n_targets,              /* size of list */
+        GDK_ACTION_COPY         /* what to do with data after dropped */
+    );
 
-        coin_source     = gtk_button_new_with_label ("[coins]");
-        well_dest       = gtk_label_new ("[a well]");
+    gtk_drag_dest_set(
+        icon_view_dest, 
+        GTK_DEST_DEFAULT_ALL, 
+        target_list, 
+        n_targets, 
+        GDK_ACTION_COPY
+    );
 
-        directions_label = gtk_label_new ("drag a coin and drop it in the well");
+    /* Make the "coin button" a DnD source.
+     * Why doesn't GtkLabel work here? 
+     * See Caveat Window above
+     */
+    gtk_drag_source_set
+    (
+        coin_source,            /* widget will be drag-able */
+        GDK_BUTTON1_MASK,       /* modifier that will start a drag */
+        target_list,            /* lists of target to support */
+        n_targets,              /* size of list */
+        GDK_ACTION_COPY         /* what to do with data after dropped */
+    );
 
+    gtk_drag_source_set(
+        icon_view_source,
+        GDK_BUTTON1_MASK,
+        target_list,
+        n_targets,
+        GDK_ACTION_COPY
+    );
 
-        /* Pack the widgets */
-        gtk_container_add (GTK_CONTAINER (window), hbox);
+    /* Connect the signals */
+    g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
 
-        gtk_container_add (GTK_CONTAINER (hbox), coin_source);
-        gtk_container_add (GTK_CONTAINER (hbox), directions_label);
-        gtk_container_add (GTK_CONTAINER (hbox), well_dest);
-
-
-        /* Make the window big enough for some DnD action */
-        gtk_window_set_default_size (GTK_WINDOW(window), win_xsize, win_ysize);
-
-
-        /* Make the "well label" a DnD destination. */
-        gtk_drag_dest_set
-        (
-                well_dest,              /* widget that will accept a drop */
-                GTK_DEST_DEFAULT_MOTION /* default actions for dest on DnD */
-                | GTK_DEST_DEFAULT_HIGHLIGHT,
-                target_list,            /* lists of target to support */
-                n_targets,              /* size of list */
-                GDK_ACTION_MOVE         /* what to do with data after dropped */
-        );
-
-        /* Make the "coin button" a DnD source. */
-        /* Why doesn't GtkLabel work here? 
-         * See Caveat Window above
-         */
-        gtk_drag_source_set
-        (
-                coin_source,            /* widget will be drag-able */
-                GDK_BUTTON1_MASK,       /* modifier that will start a drag */
-                target_list,            /* lists of target to support */
-                n_targets,              /* size of list */
-                GDK_ACTION_MOVE         /* what to do with data after dropped */
-        );
-
-
-        /* Connect the signals */
-        g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
-
-        /* All possible destination signals */
-        g_signal_connect (well_dest, "drag-data-received",
+    /* All possible destination signals */
+    g_signal_connect (well_dest, "drag-data-received",
                 G_CALLBACK(drag_data_received_handl), NULL);
 
-        g_signal_connect (well_dest, "drag-leave",
+    g_signal_connect (well_dest, "drag-leave",
                 G_CALLBACK (drag_leave_handl), NULL);
 
-        g_signal_connect (well_dest, "drag-motion",
+    g_signal_connect (well_dest, "drag-motion",
                 G_CALLBACK (drag_motion_handl), NULL);
 
-        g_signal_connect (well_dest, "drag-drop",
+    g_signal_connect (well_dest, "drag-drop",
                 G_CALLBACK (drag_drop_handl), NULL);
 
-        /* All possible source signals */
-        g_signal_connect (coin_source, "drag-data-get",
+    /* All possible source signals */
+    g_signal_connect (coin_source, "drag-data-get",
                 G_CALLBACK (drag_data_get_handl), NULL);
 
-        g_signal_connect (coin_source, "drag-data-delete",
+    g_signal_connect (coin_source, "drag-data-delete",
                 G_CALLBACK (drag_data_delete_handl), NULL);
 
-        g_signal_connect (coin_source, "drag-begin",
+    g_signal_connect (coin_source, "drag-begin",
                 G_CALLBACK (drag_begin_handl), NULL);
 
-        g_signal_connect (coin_source, "drag-end",
+    g_signal_connect (coin_source, "drag-end",
                 G_CALLBACK (drag_end_handl), NULL);
 
 
-        /* Show the widgets */
-        gtk_widget_show_all (window);
+    /* Show the widgets */
+    gtk_widget_show_all (window);
 
-        /* Start the even loop */
-        gtk_main ();
+    /* Start the even loop */
+    gtk_main ();
 
-        return 0;
+    return 0;
 }
