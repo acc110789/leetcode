@@ -491,6 +491,9 @@ main(int argc, char **argv)
     g_signal_connect(icon_view_dest, "drag-data-received", 
         G_CALLBACK(drag_data_received_handl), NULL);
 
+    g_signal_connect(icon_view_source, "drag-data-received", 
+        G_CALLBACK(drag_data_received_handl), NULL);
+
     /* All possible source signals */
     g_signal_connect (coin_source, "drag-data-get",
                 G_CALLBACK (drag_data_get_handl), NULL);
