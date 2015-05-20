@@ -18,6 +18,7 @@ hello_stack_SOURCES = hello-stack.c	\
 hello_stack_CFLAGS = $(GTK_TESTCASE_CFLAGS)
 hello_stack_LDADD = $(GTK_TESTCASE_LIBS)
 
-hello_dnd_SOURCES = hello-dnd.c
+hello_dnd_SOURCES = hello-dnd.c	\
+					moses-stackswitcher.c
 hello_dnd_CFLAGS = $(GTK_TESTCASE_CFLAGS)
 hello_dnd_LDADD = $(GTK_TESTCASE_LIBS)

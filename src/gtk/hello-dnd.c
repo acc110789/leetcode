@@ -20,6 +20,7 @@
 #include <gtk/gtk.h>
 #include <string.h>
 
+#include "moses-stackswitcher.h"
 
 /******************************************************************************/
 #define _BYTE   8
@@ -53,6 +54,7 @@ static GtkTargetEntry target_list[] = {
 static guint n_targets = G_N_ELEMENTS (target_list);
 static GtkIconTheme *icon_theme;
 static GtkWidget *well_dest;
+static GtkWidget *stack;
 
 /******************************************************************************/
 /* Signal receivable by destination */
@@ -103,7 +105,7 @@ static void drag_data_received_handl(GtkWidget *widget,
                 
                 GtkTreeModel *model = gtk_icon_view_get_model(GTK_ICON_VIEW(widget));
                 GdkPixbuf *pixbuf = gtk_icon_theme_load_icon(icon_theme,
-                    _sdata, 64, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
+                    _sdata, 48, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
                 GtkTreeIter iter;
 
                 gtk_list_store_append(GTK_LIST_STORE(model), &iter);
@@ -147,9 +149,34 @@ static gboolean drag_motion_handl(GtkWidget *widget,
                                   guint time, 
                                   gpointer user_data)
 {
-    // Fancy stuff here. This signal spams the console something horrible.
-    //const gchar *name = gtk_widget_get_name(widget);
-    //g_print("%s: drag_motion_handl\n", name);
+    const gchar *name = gtk_widget_get_name(widget);
+    gchar *stack_child_name = NULL;
+    GtkWidget *stack_child = NULL;
+    unsigned int index = 0;
+    char buf[16] = {'\0'};
+    GtkAllocation allocation;
+
+    if (strcmp(name, "GtkIconView") != 0)
+        return FALSE;
+
+    gtk_widget_get_allocation(widget, &allocation);
+
+    stack_child_name = gtk_stack_get_visible_child_name(stack);
+    if (stack_child_name == NULL)
+        return FALSE;
+
+    if (x < 40)
+        index = atoi(stack_child_name) - 1;
+    else if (x > allocation.width - 40)
+        index = atoi(stack_child_name) + 1;
+
+    if (index) {
+        snprintf(buf, sizeof(buf) - 1, "%d", index);
+        stack_child = gtk_stack_get_child_by_name(stack, buf);
+        if (stack_child)
+            gtk_stack_set_visible_child(stack, stack_child);
+    }
+
     return FALSE;
 }
 
@@ -344,8 +371,8 @@ static void m_store_add_item(GtkListStore *store, char *id)
     GtkTreeIter iter;
 
     gtk_list_store_append(store, &iter);
-    pixbuf = gtk_icon_theme_load_icon(icon_theme, id, 64,              
-        GTK_ICON_LOOKUP_FORCE_SIZE, NULL);                                      
+    pixbuf = gtk_icon_theme_load_icon(icon_theme, id, 48,
+        GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
     gtk_list_store_set(store, &iter, COL_ICON, pixbuf, COL_NAME, id, -1);
 }
 
@@ -359,6 +386,7 @@ main(int argc, char **argv)
     GtkWidget       *hbox;
     GtkWidget       *coin_source;
     GtkWidget       *directions_label;
+    GtkWidget       *stack_switcher;
     GtkWidget       *icon_view_source;
     GtkWidget       *icon_view_dest;
     guint           win_xsize       = 800;
@@ -383,20 +411,40 @@ main(int argc, char **argv)
     screen = gdk_display_get_default_screen(gdk_display_get_default());
     icon_theme = gtk_icon_theme_get_for_screen(screen);
     store = gtk_list_store_new(ICON_COLS, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-    m_store_add_item(store, "gtk-about");
-    m_store_add_item(store, "edit-copy");
-    m_store_add_item(store, "image");
+    m_store_add_item(store, "microphone-sensitivity-high");
+    m_store_add_item(store, "task-due");
+    m_store_add_item(store, "edit-clear-all");
+    m_store_add_item(store, "phone");
+    m_store_add_item(store, "audio-headphones");
+    m_store_add_item(store, "application-certificate");
+    m_store_add_item(store, "x-office-calendar");
+    m_store_add_item(store, "face-kiss");
+    m_store_add_item(store, "face-laugh");
+    m_store_add_item(store, "face-monkey");
+
+    stack = gtk_stack_new();
+    gtk_stack_set_transition_type(GTK_STACK(stack), 
+        GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT);
+
+    stack_switcher = moses_stack_switcher_new(); 
+    gtk_widget_set_name(stack_switcher, "moses-stackswitcher");
+    gtk_widget_set_halign(stack_switcher, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(stack_switcher, GTK_ALIGN_END);
+    moses_stack_switcher_set_stack(MOSES_STACK_SWITCHER(stack_switcher),
+        GTK_STACK(stack));
 
     icon_view_source = gtk_icon_view_new_with_model(GTK_TREE_MODEL(store));
-    gtk_widget_set_size_request(icon_view_source, 300, 400);
+    gtk_widget_set_size_request(icon_view_source, 800, 500);
     gtk_icon_view_set_text_column(GTK_ICON_VIEW(icon_view_source), COL_NAME);
     gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(icon_view_source), COL_ICON);
-    
+    gtk_stack_add_titled(GTK_STACK(stack), icon_view_source, "1", "Page 1");
+
     icon_view_dest = gtk_icon_view_new_with_model(
         GTK_TREE_MODEL(gtk_list_store_new(ICON_COLS, GDK_TYPE_PIXBUF, G_TYPE_STRING)));
-    gtk_widget_set_size_request(icon_view_dest, 300, 400);
+    gtk_widget_set_size_request(icon_view_dest, 800, 500);
     gtk_icon_view_set_text_column(GTK_ICON_VIEW(icon_view_dest), COL_NAME);
     gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(icon_view_dest), COL_ICON);
+    gtk_stack_add_titled(GTK_STACK(stack), icon_view_dest, "2", "Page 2");
 
     /* Pack the widgets */
     gtk_container_add (GTK_CONTAINER (window), vbox);
@@ -408,10 +456,10 @@ main(int argc, char **argv)
     gtk_container_add(GTK_CONTAINER(vbox), hbox);
 
     hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, spacing);
-    gtk_container_add(GTK_CONTAINER(hbox), icon_view_source);
-    gtk_container_add(GTK_CONTAINER(hbox), icon_view_dest);
+    gtk_container_add(GTK_CONTAINER(hbox), stack);
 
     gtk_container_add(GTK_CONTAINER(vbox), hbox);
+    gtk_container_add(GTK_CONTAINER(vbox), stack_switcher);
 
     /* Make the window big enough for some DnD action */
     gtk_window_set_default_size (GTK_WINDOW(window), win_xsize, win_ysize);
@@ -495,6 +543,12 @@ main(int argc, char **argv)
 
     g_signal_connect(icon_view_source, "drag-data-received", 
         G_CALLBACK(drag_data_received_handl), NULL);
+
+    g_signal_connect(icon_view_dest, "drag-motion", 
+        G_CALLBACK(drag_motion_handl), NULL);
+
+    g_signal_connect(icon_view_source, "drag-motion", 
+        G_CALLBACK(drag_motion_handl), NULL);
 
     /* All possible source signals */
     g_signal_connect (coin_source, "drag-data-get",
