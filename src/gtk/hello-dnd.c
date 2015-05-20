@@ -454,8 +454,18 @@ main(int argc, char **argv)
         GDK_ACTION_COPY         /* what to do with data after dropped */
     );
 
-    gtk_drag_source_set(
+    gtk_drag_source_set
+    (
         icon_view_source,
+        GDK_BUTTON1_MASK,
+        target_list,
+        n_targets,
+        GDK_ACTION_COPY
+    );
+
+    gtk_drag_source_set
+    (
+        icon_view_dest,
         GDK_BUTTON1_MASK,
         target_list,
         n_targets,
