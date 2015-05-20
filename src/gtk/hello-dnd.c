@@ -1,19 +1,20 @@
 /* hello-dnd.c : Simple tutorial for GTK+ Drag-N-Drop
  * Copyright (C) 2005 Ryan McDougall.
+ * Copyright (C) 2015 Leslie Zhai <xiang.zhai@i-soft.com.cn>
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
 #include <gtk/gtk.h>
@@ -50,7 +51,9 @@ static GtkTargetEntry target_list[] = {
 };
 
 static guint n_targets = G_N_ELEMENTS (target_list);
-
+static GtkIconTheme *icon_theme;
+static GtkWidget *well_dest;
+static GtkListStore *store;
 
 /******************************************************************************/
 /* Signal receivable by destination */
@@ -59,11 +62,14 @@ static guint n_targets = G_N_ELEMENTS (target_list);
  * the GtkSelectionData sent by the source, and do something with it. Finally
  * it needs to finish the operation by calling gtk_drag_finish, which will emit
  * the "data-delete" signal if told to. */
-static void
-drag_data_received_handl
-(GtkWidget *widget, GdkDragContext *context, gint x, gint y,
-        GtkSelectionData *selection_data, guint target_type, guint time,
-        gpointer data)
+static void drag_data_received_handl(GtkWidget *widget, 
+                                     GdkDragContext *context, 
+                                     gint x, 
+                                     gint y, 
+                                     GtkSelectionData *selection_data, 
+                                     guint target_type, 
+                                     guint time, 
+                                     gpointer data)
 {
     glong   *_idata;
     gchar   *_sdata;
@@ -71,12 +77,14 @@ drag_data_received_handl
     gboolean dnd_success = FALSE;
     gboolean delete_selection_data = FALSE;
 
-    const gchar *name = gtk_widget_get_name (widget);
-    g_print ("%s: drag_data_received_handl\n", name);
+    const gchar *name = gtk_widget_get_name(widget);
+    g_print("%s: drag_data_received_handl\n", name);
 
+    if (strcmp(name, "GtkIconView") == 0) {
+        g_signal_stop_emission_by_name(widget, "drag-data-received");
+    }
 
     /* Deal with what we are given from source */
-    printf("DEBUG: %x\n", gtk_selection_data_get_data(selection_data));
     if (selection_data != NULL && 
        gtk_selection_data_get_length(selection_data) >= 0) {
         if (gdk_drag_context_get_suggested_action(context) == GDK_ACTION_ASK) {
@@ -87,22 +95,39 @@ drag_data_received_handl
             delete_selection_data = TRUE;
 
         /* Check that we got the format we can use */
-        g_print (" Receiving ");
+        g_print(" Receiving ");
         switch (target_type) {
         case TARGET_INT32:
-            _idata = (glong*)gtk_selection_data_get_data(selection_data);
-            g_print ("integer: %ld", *_idata);
+            if (strcmp(name, "GtkIconView") == 0) {
+                _sdata = (gchar*)gtk_selection_data_get_data(selection_data);
+                g_print("string: %s", _sdata);
+                
+                GtkTreeModel *model = gtk_icon_view_get_model(GTK_ICON_VIEW(widget));
+                GdkPixbuf *pixbuf = gtk_icon_theme_load_icon(icon_theme,
+                    _sdata, 64, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
+                GtkTreeIter iter;
+
+                gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+                gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                    COL_ICON, pixbuf, COL_NAME, _sdata, -1);
+            } else {
+                _idata = (glong*)gtk_selection_data_get_data(selection_data);
+                g_print("integer: %ld", *_idata);
+            }
             dnd_success = TRUE;
             break;
 
         case TARGET_STRING:
             _sdata = (gchar*)gtk_selection_data_get_data(selection_data);
-            g_print ("string: %s", _sdata);
+            g_print("string: %s", _sdata);
             dnd_success = TRUE;
+            if (strcmp(name, "GtkLabel") == 0)
+                gtk_label_set_label(GTK_LABEL(well_dest), _sdata);
+            
             break;
 
         default:
-            g_print ("nothing good");
+            g_print("nothing good");
         }
 
         g_print (".\n");
@@ -116,24 +141,27 @@ drag_data_received_handl
 }
 
 /* Emitted when a drag is over the destination */
-static gboolean
-drag_motion_handl
-(GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint t,
-        gpointer user_data)
+static gboolean drag_motion_handl(GtkWidget *widget, 
+                                  GdkDragContext *context, 
+                                  gint x, 
+                                  gint y, 
+                                  guint time, 
+                                  gpointer user_data)
 {
-        // Fancy stuff here. This signal spams the console something horrible.
-        //const gchar *name = gtk_widget_get_name (widget);
-        //g_print ("%s: drag_motion_handl\n", name);
-        return  FALSE;
+    // Fancy stuff here. This signal spams the console something horrible.
+    //const gchar *name = gtk_widget_get_name(widget);
+    //g_print("%s: drag_motion_handl\n", name);
+    return FALSE;
 }
 
 /* Emitted when a drag leaves the destination */
-static void
-drag_leave_handl
-(GtkWidget *widget, GdkDragContext *context, guint time, gpointer user_data)
+static void drag_leave_handl(GtkWidget *widget, 
+                             GdkDragContext *context, 
+                             guint time, 
+                             gpointer user_data)
 {
-        const gchar *name = gtk_widget_get_name (widget);
-        g_print ("%s: drag_leave_handl\n", name);
+    const gchar *name = gtk_widget_get_name(widget);
+    g_print("%s: drag_leave_handl\n", name);
 }
 
 /* Emitted when the user releases (drops) the selection. It should check that
@@ -141,43 +169,44 @@ drag_leave_handl
  * itself to return true if the operation should continue. Next choose the
  * target type it wishes to ask the source for. Finally call gtk_drag_get_data
  * which will emit "drag-data-get" on the source. */
-static gboolean
-drag_drop_handl
-(GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint time,
-        gpointer user_data)
+static gboolean drag_drop_handl(GtkWidget *widget, 
+                                GdkDragContext *context, 
+                                gint x, 
+                                gint y, 
+                                guint time, 
+                                gpointer user_data)
 {
-        gboolean        is_valid_drop_site;
-        GdkAtom         target_type;
+    gboolean        is_valid_drop_site;
+    GdkAtom         target_type;
 
-        const gchar *name = gtk_widget_get_name (widget);
-        g_print ("%s: drag_drop_handl\n", name);
+    const gchar *name = gtk_widget_get_name(widget);
+    g_print("%s: drag_drop_handl\n", name);
 
-        /* Check to see if (x,y) is a valid drop site within widget */
-        is_valid_drop_site = TRUE;
+    /* Check to see if (x,y) is a valid drop site within widget */
+    is_valid_drop_site = TRUE;
 
-        /* If the source offers a target */
-        if (gdk_drag_context_list_targets (context))
-        {
-                /* Choose the best target type */
-                target_type = GDK_POINTER_TO_ATOM
-                        (g_list_nth_data (gdk_drag_context_list_targets(context), TARGET_INT32));
+    /* If the source offers a target */
+    if (gdk_drag_context_list_targets(context)) {
+        /* Choose the best target type */
+        target_type = GDK_POINTER_TO_ATOM(
+            g_list_nth_data(gdk_drag_context_list_targets(context), 
+            TARGET_STRING));
 
-                /* Request the data from the source. */
-                gtk_drag_get_data
-                (
-                        widget,         /* will receive 'drag-data-received' signal */
-                        context,        /* represents the current state of the DnD */
-                        target_type,    /* the target type we want */
-                        time            /* time stamp */
-                );
-        }
-        /* No target offered by source => error */
-        else
-        {
-                is_valid_drop_site = FALSE;
-        }
+        /* Request the data from the source. */
+        gtk_drag_get_data
+        (
+            widget,         /* will receive 'drag-data-received' signal */
+            context,        /* represents the current state of the DnD */
+            target_type,    /* the target type we want */
+            time            /* time stamp */
+        );
+    }
+    /* No target offered by source => error */
+    else {
+        is_valid_drop_site = FALSE;
+    }
 
-        return  is_valid_drop_site;
+    return  is_valid_drop_site;
 }
 
 
@@ -205,60 +234,89 @@ drag_data_delete_handl
  * destination. GdkSelectionData is based on X's selection mechanism which,
  * via X properties, is only capable of storing data in blocks of 8, 16, or
  * 32 bit units. */
-static void
-drag_data_get_handl
-(GtkWidget *widget, GdkDragContext *context, GtkSelectionData *selection_data,
-        guint target_type, guint time, gpointer user_data)
+static void drag_data_get_handl(GtkWidget *widget, 
+                                GdkDragContext *context, 
+                                GtkSelectionData *selection_data, 
+                                guint target_type, 
+                                guint time, 
+                                gpointer user_data)
 {
-        const gchar *name = gtk_widget_get_name (widget);
-        const gchar *string_data = "This is data from the source.";
-        const glong integer_data = 42;
+    const gchar *name = gtk_widget_get_name(widget);
+    const gchar *string_data = "This is data from the source.";
+    const glong integer_data = 42;
 
-        g_print ("%s: drag_data_get_handl\n", name);
-        g_assert (selection_data != NULL);
+    g_print("%s: drag_data_get_handl\n", name);
+    g_assert(selection_data != NULL);
 
-        g_print (" Sending ");
-        switch (target_type)
-        {
-                /* case TARGET_SOME_OBJECT:
-                 * Serialize the object and send as a string of bytes.
-                 * Pixbufs, (UTF-8) text, and URIs have their own convenience
-                 * setter functions */
+    if (strcmp(name, "GtkButton") == 0)
+        string_data = gtk_button_get_label(GTK_BUTTON(widget));
 
-        case TARGET_INT32:
-                g_print ("integer: %ld", integer_data);
-                gtk_selection_data_set
-                (
-                        selection_data,         /* Allocated GdkSelectionData object */
-                        gtk_selection_data_get_target(selection_data), /* target type */
-                        _DWORD,                 /* number of bits per 'unit' */
-                        (guchar*) &integer_data,/* pointer to data to be sent */
-                        sizeof (integer_data)   /* length of data in units */
-                );
-                break;
+    if (strcmp(name, "GtkIconView") == 0) {
+        GList *items = gtk_icon_view_get_selected_items(GTK_ICON_VIEW(widget));
+        GtkTreeIter iter;
 
-        case TARGET_STRING:
-                g_print ("string: %s", string_data);
-                gtk_selection_data_set
-                (
-                        selection_data,
-                        gtk_selection_data_get_target(selection_data),
-                        _BYTE,
-                        (guchar*) string_data,
-                        strlen (string_data)
-                );
-                break;
+        for (GList *i = items; i; i = g_list_next(i)) {
+            char *name = NULL;
 
-        case TARGET_ROOTWIN:
-                g_print ("Dropped on the root window!\n");
-                break;
-
-        default:
-                /* Default to some a safe target instead of fail. */
-                g_assert_not_reached ();
+            gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &iter, i->data);
+            gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, COL_NAME, &name, -1);
+            string_data = name;
         }
+    }
 
-        g_print (".\n");
+    g_print(" Sending ");
+    switch (target_type) {
+        /* case TARGET_SOME_OBJECT:
+         * Serialize the object and send as a string of bytes.
+         * Pixbufs, (UTF-8) text, and URIs have their own convenience
+         * setter functions */
+
+    case TARGET_INT32:
+        if (strcmp(name, "GtkIconView") == 0) {
+            g_print("string: %s", string_data);
+            gtk_selection_data_set
+            (
+                selection_data, 
+                gtk_selection_data_get_target(selection_data),
+                _BYTE,
+                (gchar*) string_data, 
+                strlen(string_data)
+            );
+        } else {
+            g_print("integer: %ld", integer_data);
+            gtk_selection_data_set
+            (
+                selection_data,         /* Allocated GdkSelectionData object */
+                gtk_selection_data_get_target(selection_data), /* target type */
+                _DWORD,                 /* number of bits per 'unit' */
+                (guchar*) &integer_data,/* pointer to data to be sent */
+                sizeof(integer_data)   /* length of data in units */
+            );
+        }
+        break;
+
+    case TARGET_STRING:
+        g_print("string: %s", string_data);
+        gtk_selection_data_set
+        (
+            selection_data,
+            gtk_selection_data_get_target(selection_data),
+            _BYTE,
+            (guchar*) string_data,
+            strlen(string_data)
+        );
+        break;
+
+    case TARGET_ROOTWIN:
+        g_print("Dropped on the root window!\n");
+        break;
+
+    default:
+        /* Default to some a safe target instead of fail. */
+        g_assert_not_reached();
+    }
+
+    g_print(".\n");
 }
 
 /* Emitted when DnD begins. This is often used to present custom graphics. */
@@ -279,9 +337,7 @@ drag_end_handl
         g_print ("%s: drag_end_handl\n", name);
 }
 
-static void m_store_add_item(GtkIconTheme *icon_theme, 
-                             GtkListStore *store, 
-                             char *id) 
+static void m_store_add_item(char *id) 
 {
     GdkPixbuf *pixbuf;
     GtkTreeIter iter;
@@ -297,13 +353,10 @@ int
 main(int argc, char **argv)
 {
     GdkScreen       *screen;
-    GtkIconTheme    *icon_theme;
-    GtkListStore    *store;
     GtkWidget       *window;
     GtkWidget       *vbox;
     GtkWidget       *hbox;
     GtkWidget       *coin_source;
-    GtkWidget       *well_dest;
     GtkWidget       *directions_label;
     GtkWidget       *icon_view_source;
     GtkWidget       *icon_view_dest;
@@ -328,17 +381,20 @@ main(int argc, char **argv)
     screen = gdk_display_get_default_screen(gdk_display_get_default());
     icon_theme = gtk_icon_theme_get_for_screen(screen);
     store = gtk_list_store_new(ICON_COLS, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-    m_store_add_item(icon_theme, store, "gtk-about");
-    m_store_add_item(icon_theme, store, "edit-copy");
-    m_store_add_item(icon_theme, store, "image");
+    m_store_add_item("gtk-about");
+    m_store_add_item("edit-copy");
+    m_store_add_item("image");
 
     icon_view_source = gtk_icon_view_new_with_model(GTK_TREE_MODEL(store));
     gtk_widget_set_size_request(icon_view_source, 300, 400);
     gtk_icon_view_set_text_column(GTK_ICON_VIEW(icon_view_source), COL_NAME);
     gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(icon_view_source), COL_ICON);
     
-    icon_view_dest = gtk_icon_view_new();
+    icon_view_dest = gtk_icon_view_new_with_model(
+        GTK_TREE_MODEL(gtk_list_store_new(ICON_COLS, GDK_TYPE_PIXBUF, G_TYPE_STRING)));
     gtk_widget_set_size_request(icon_view_dest, 300, 400);
+    gtk_icon_view_set_text_column(GTK_ICON_VIEW(icon_view_dest), COL_NAME);
+    gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(icon_view_dest), COL_ICON);
 
     /* Pack the widgets */
     gtk_container_add (GTK_CONTAINER (window), vbox);
@@ -421,6 +477,9 @@ main(int argc, char **argv)
 
     g_signal_connect (well_dest, "drag-drop",
                 G_CALLBACK (drag_drop_handl), NULL);
+
+    g_signal_connect(icon_view_dest, "drag-data-received", 
+        G_CALLBACK(drag_data_received_handl), NULL);
 
     /* All possible source signals */
     g_signal_connect (coin_source, "drag-data-get",
