@@ -53,7 +53,6 @@ static GtkTargetEntry target_list[] = {
 static guint n_targets = G_N_ELEMENTS (target_list);
 static GtkIconTheme *icon_theme;
 static GtkWidget *well_dest;
-static GtkListStore *store;
 
 /******************************************************************************/
 /* Signal receivable by destination */
@@ -252,15 +251,17 @@ static void drag_data_get_handl(GtkWidget *widget,
         string_data = gtk_button_get_label(GTK_BUTTON(widget));
 
     if (strcmp(name, "GtkIconView") == 0) {
+        GtkTreeModel *model = gtk_icon_view_get_model(GTK_ICON_VIEW(widget));
         GList *items = gtk_icon_view_get_selected_items(GTK_ICON_VIEW(widget));
         GtkTreeIter iter;
 
         for (GList *i = items; i; i = g_list_next(i)) {
             char *name = NULL;
 
-            gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &iter, i->data);
-            gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, COL_NAME, &name, -1);
+            gtk_tree_model_get_iter(model, &iter, i->data);
+            gtk_tree_model_get(model, &iter, COL_NAME, &name, -1);
             string_data = name;
+            gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
         }
     }
 
@@ -337,7 +338,7 @@ drag_end_handl
         g_print ("%s: drag_end_handl\n", name);
 }
 
-static void m_store_add_item(char *id) 
+static void m_store_add_item(GtkListStore *store, char *id) 
 {
     GdkPixbuf *pixbuf;
     GtkTreeIter iter;
@@ -363,6 +364,7 @@ main(int argc, char **argv)
     guint           win_xsize       = 800;
     guint           win_ysize       = 600;
     guint           spacing         = 5;
+    GtkListStore    *store;
 
     /* Always start GTK+ first! */
     gtk_init (&argc, &argv);
@@ -381,9 +383,9 @@ main(int argc, char **argv)
     screen = gdk_display_get_default_screen(gdk_display_get_default());
     icon_theme = gtk_icon_theme_get_for_screen(screen);
     store = gtk_list_store_new(ICON_COLS, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-    m_store_add_item("gtk-about");
-    m_store_add_item("edit-copy");
-    m_store_add_item("image");
+    m_store_add_item(store, "gtk-about");
+    m_store_add_item(store, "edit-copy");
+    m_store_add_item(store, "image");
 
     icon_view_source = gtk_icon_view_new_with_model(GTK_TREE_MODEL(store));
     gtk_widget_set_size_request(icon_view_source, 300, 400);
@@ -510,6 +512,8 @@ main(int argc, char **argv)
     g_signal_connect(icon_view_source, "drag-data-get", 
             G_CALLBACK(drag_data_get_handl), NULL);
 
+    g_signal_connect(icon_view_dest, "drag-data-get", 
+        G_CALLBACK(drag_data_get_handl), NULL);
 
     /* Show the widgets */
     gtk_widget_show_all (window);
