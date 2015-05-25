@@ -22,6 +22,12 @@ struct _MosesClockPrivate
     GdkPixbuf   *second_pixbuf;
     
     gboolean    digital;
+
+    guint       tick_id;
+    gint64      start_time;
+    gint64      end_time;
+
+    int         second;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(MosesClock, moses_clock, GTK_TYPE_WIDGET)
@@ -123,6 +129,15 @@ static void moses_clock_dispose(GObject *object)
 
 static void moses_clock_finalize(GObject *object)
 {
+    MosesClock *clock = MOSES_CLOCK(object);
+    MosesClockPrivate *priv = moses_clock_get_instance_private(clock);
+
+    if (priv->tick_id != 0) {
+        gtk_widget_remove_tick_callback(GTK_WIDGET(clock), priv->tick_id);
+        priv->tick_id = 0;
+    }
+
+    /* virtual */
     G_OBJECT_CLASS(moses_clock_parent_class)->finalize(object);
 }
 
@@ -241,9 +256,55 @@ static void m_draw_hand(cairo_t *cr,
     cairo_restore(cr);
 }
 
+static double ease_out_cubic(double t) 
+{
+    double p = t - 1;
+    return p * p * p + 1;
+}
+
+static void m_animate_step(MosesClock   *clock, 
+                           gint64       now, 
+                           int          second) 
+{
+    MosesClockPrivate *priv = moses_clock_get_instance_private(clock);
+    gdouble t;
+
+    if (now < priv->end_time)
+        t = (now - priv->start_time) / (gdouble) (priv->end_time - priv->start_time);
+    else 
+        t = 1.0;
+
+    t = ease_out_cubic(t);
+
+    priv->second = second;
+    gtk_widget_queue_draw(GTK_WIDGET(clock));
+}
+
+static gboolean m_animate_cb(GtkWidget      *widget, 
+                             GdkFrameClock  *frame_clock, 
+                             gpointer       user_data) 
+{
+    MosesClock *clock = MOSES_CLOCK(widget);
+    MosesClockPrivate *priv = moses_clock_get_instance_private(clock);
+    gint64 now;
+    int second;
+
+    now = gdk_frame_clock_get_frame_time(frame_clock);
+    second = (int) user_data;
+    m_animate_step(clock, now, second);
+
+    if (priv->tick_id != 0) {
+        gtk_widget_remove_tick_callback(widget, priv->tick_id);
+        priv->tick_id = 0;
+    }
+    
+    return FALSE;
+}
+
 static gboolean moses_clock_draw(GtkWidget *widget, cairo_t *cr)
 {
-    MosesClockPrivate *priv = MOSES_CLOCK(widget)->priv;
+    MosesClock *clock = MOSES_CLOCK(widget);
+    MosesClockPrivate *priv = clock->priv;
     GtkAllocation alloc;
     int width = gdk_pixbuf_get_width(priv->clock_pixbuf);
     int height = gdk_pixbuf_get_height(priv->clock_pixbuf);
@@ -292,9 +353,20 @@ static gboolean moses_clock_draw(GtkWidget *widget, cairo_t *cr)
     /* paint minute */
     m_draw_hand(cr, priv->minute_pixbuf, ox, y, 
         m_radians(360 * local_tm->tm_min / 60));
+    
     /* paint second */
+#if 0
+    priv->start_time = gdk_frame_clock_get_frame_time(
+        gtk_widget_get_frame_clock(widget));
+    priv->end_time = priv->start_time + 500;
+    if (priv->tick_id == 0) {
+        gtk_widget_add_tick_callback(widget, m_animate_cb, clock, local_tm->tm_sec);
+    }
+    m_animate_step(clock, priv->start_time, local_tm->tm_sec + 1);
+#endif
     m_draw_hand(cr, priv->second_pixbuf, ox, y, 
         m_radians(360 * local_tm->tm_sec / 60));
+
     /* paint center */
     cairo_save(cr);
     gdk_cairo_set_source_pixbuf(cr,                                             
