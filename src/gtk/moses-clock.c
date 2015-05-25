@@ -24,10 +24,8 @@ struct _MosesClockPrivate
     gboolean    digital;
 
     guint       tick_id;
-    gint64      start_time;
-    gint64      end_time;
-
-    int         second;
+    double      second_degree;      /* real second degree */
+    double      second_mod_degree;  /* anmiated second degree M.O.D */
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(MosesClock, moses_clock, GTK_TYPE_WIDGET)
@@ -256,49 +254,19 @@ static void m_draw_hand(cairo_t *cr,
     cairo_restore(cr);
 }
 
-static double ease_out_cubic(double t) 
-{
-    double p = t - 1;
-    return p * p * p + 1;
-}
-
-static void m_animate_step(MosesClock   *clock, 
-                           gint64       now, 
-                           int          second) 
-{
-    MosesClockPrivate *priv = moses_clock_get_instance_private(clock);
-    gdouble t;
-
-    if (now < priv->end_time)
-        t = (now - priv->start_time) / (gdouble) (priv->end_time - priv->start_time);
-    else 
-        t = 1.0;
-
-    t = ease_out_cubic(t);
-
-    priv->second = second;
-    gtk_widget_queue_draw(GTK_WIDGET(clock));
-}
-
 static gboolean m_animate_cb(GtkWidget      *widget, 
                              GdkFrameClock  *frame_clock, 
                              gpointer       user_data) 
 {
     MosesClock *clock = MOSES_CLOCK(widget);
     MosesClockPrivate *priv = moses_clock_get_instance_private(clock);
-    gint64 now;
-    int second;
 
-    now = gdk_frame_clock_get_frame_time(frame_clock);
-    second = (int) user_data;
-    m_animate_step(clock, now, second);
-
-    if (priv->tick_id != 0) {
-        gtk_widget_remove_tick_callback(widget, priv->tick_id);
-        priv->tick_id = 0;
+    if (priv->second_mod_degree > priv->second_degree) {
+        priv->second_mod_degree -= 0.08;
+        gtk_widget_queue_draw(widget);
     }
     
-    return FALSE;
+    return TRUE;
 }
 
 static gboolean moses_clock_draw(GtkWidget *widget, cairo_t *cr)
@@ -311,7 +279,6 @@ static gboolean moses_clock_draw(GtkWidget *widget, cairo_t *cr)
     int x = 0, y = 0, ox = 0;
     time_t cur_time = time(NULL);
     struct tm *local_tm = localtime(&cur_time);
-    int i;
 
     /* allocate */
     gtk_widget_get_allocation(widget, &alloc);
@@ -328,7 +295,7 @@ static gboolean moses_clock_draw(GtkWidget *widget, cairo_t *cr)
         int x_arr[4] = {0, width + DIGITAL_PADDING, 
             width * 2 + DIGITAL_PADDING * 3, width * 3 + DIGITAL_PADDING * 4};
 
-        for (i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             cairo_save(cr);
             gdk_cairo_set_source_pixbuf(cr, 
                 priv->digital_pixbuf[digital_arr[i]], x_arr[i], y);
@@ -353,19 +320,9 @@ static gboolean moses_clock_draw(GtkWidget *widget, cairo_t *cr)
     /* paint minute */
     m_draw_hand(cr, priv->minute_pixbuf, ox, y, 
         m_radians(360 * local_tm->tm_min / 60));
-    
     /* paint second */
-#if 0
-    priv->start_time = gdk_frame_clock_get_frame_time(
-        gtk_widget_get_frame_clock(widget));
-    priv->end_time = priv->start_time + 500;
-    if (priv->tick_id == 0) {
-        gtk_widget_add_tick_callback(widget, m_animate_cb, clock, local_tm->tm_sec);
-    }
-    m_animate_step(clock, priv->start_time, local_tm->tm_sec + 1);
-#endif
     m_draw_hand(cr, priv->second_pixbuf, ox, y, 
-        m_radians(360 * local_tm->tm_sec / 60));
+        m_radians(priv->second_mod_degree));
 
     /* paint center */
     cairo_save(cr);
@@ -386,6 +343,9 @@ static void moses_clock_map(GtkWidget *widget)
                                                                                 
     GTK_WIDGET_CLASS(moses_clock_parent_class)->map(widget);
     
+    if (priv->tick_id == 0)
+        gtk_widget_add_tick_callback(widget, m_animate_cb, clock, NULL);
+
     gdk_window_show(priv->window);
 }
 
@@ -434,6 +394,13 @@ static void moses_clock_class_init(MosesClockClass *klass)
 static gboolean m_timeout_cb(gpointer user_data) 
 {
     MosesClock *clock = MOSES_CLOCK(user_data);
+    MosesClockPrivate *priv = moses_clock_get_instance_private(clock);
+    time_t cur_time = time(NULL);
+    struct tm *local_tm = localtime(&cur_time);
+
+    priv->second_degree = 360 * local_tm->tm_sec / 60;
+    /* M.O.D by add 2 degree */
+    priv->second_mod_degree = priv->second_degree + 2.;
 
     gtk_widget_queue_draw(GTK_WIDGET(clock));
     
@@ -517,7 +484,7 @@ static void moses_clock_init(MosesClock *self)
 
     /* digital */
     priv->digital = FALSE;
-    
+
     /* timer */
     g_timeout_add(1000, (GSourceFunc)m_timeout_cb, self);
 }
