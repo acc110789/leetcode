@@ -1,5 +1,5 @@
 AC_INIT([gtk-testcase], [1.0], [xiang.zhai@i-soft.com.cn])
-AM_INIT_AUTOMAKE([subdir-objects -Wall -Werror foreign])
+AM_INIT_AUTOMAKE([1.11 subdir-objects foreign])
 AC_PROG_CC
 AM_MAINTAINER_MODE
 AC_CONFIG_MACRO_DIR([m4])

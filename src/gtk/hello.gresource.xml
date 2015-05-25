@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/org/moses/hello">
+        <file>assets/clock.png</file>
+        <file>assets/clock-night.png</file>
+        <file>assets/center.png</file>
+        <file>assets/hour.png</file>
+        <file>assets/minute.png</file>
+        <file>assets/second.png</file>
+        <file>assets/0.png</file>
+        <file>assets/1.png</file>
+        <file>assets/2.png</file>
+        <file>assets/3.png</file>
+        <file>assets/4.png</file>
+        <file>assets/5.png</file>
+        <file>assets/6.png</file>
+        <file>assets/7.png</file>
+        <file>assets/8.png</file>
+        <file>assets/9.png</file>
+    </gresource>
+</gresources>
