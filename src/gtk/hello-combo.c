@@ -3,10 +3,11 @@
 #include <gtk/gtk.h>
 #include <string.h>
 
-#define MENU_SIZE 128
+#define MENU_SIZE 8
 
 static GtkWidget *m_window = NULL;
 static GtkWidget *m_popup = NULL;
+static int m_i = 0;
 
 static void m_destroy_cb(GtkWidget *widget, gpointer user_data) 
 {
@@ -19,14 +20,22 @@ static void m_menu_position(GtkMenu *menu,
                             gint *push_in, 
                             gpointer user_data) 
 {
+    GtkWidget *active = gtk_menu_get_active(menu);
     GdkEventButton *event = (GdkEventButton *) user_data;
     int menu_xpos = event->x;
     int menu_ypos = event->y;
+    GtkAllocation allocation;
 
-    printf("DEBUG: %s, (%d, %d)\n", __func__, menu_xpos, menu_ypos);
+    if (active) {
+        gtk_menu_shell_select_item(GTK_MENU_SHELL(m_popup), active);
+        gtk_widget_get_allocation(active, &allocation);
+        menu_ypos -= allocation.height;
+    }
+
+    printf("DEBUG: %s (%d, %d)\n", __func__, menu_xpos, menu_ypos);
     gdk_window_get_root_coords(gtk_widget_get_window(m_window), 
         menu_xpos, menu_ypos, &menu_xpos, &menu_ypos);
-    printf("DEBUG: %s, (%d, %d)\n", __func__, menu_xpos, menu_ypos);
+    printf("DEBUG: %s (%d, %d)\n", __func__, menu_xpos, menu_ypos);
     *x = menu_xpos;
     *y = menu_ypos;
     *push_in = TRUE;
@@ -36,9 +45,16 @@ static void m_button_press_cb(GtkStatusIcon *status_icon,
                               GdkEventButton *event, 
                               gpointer user_data) 
 {
+    char buf[32] = {'\0'};
+    
     if (event->button != 3)
         return;
-
+    
+    /* increase menu height */
+    snprintf(buf, sizeof(buf) - 1, "item %d", ++m_i);
+    gtk_menu_shell_append(GTK_MENU_SHELL(m_popup), 
+        gtk_menu_item_new_with_label(buf));
+    
     gtk_widget_show_all(m_popup);
     gtk_menu_popup(GTK_MENU(m_popup), 
         NULL, NULL, 
@@ -57,16 +73,16 @@ int main(int argc, char *argv[])
     
     /* TODO: popup */
     m_popup = gtk_menu_new();
-    for (int i = 0; i < MENU_SIZE; i++) {
+    for (m_i = 0; m_i < MENU_SIZE; m_i++) {
         memset(buf, 0, sizeof(buf));
-        snprintf(buf, sizeof(buf) - 1, "item %d", i + 1);
+        snprintf(buf, sizeof(buf) - 1, "item %d", m_i + 1);
         gtk_menu_shell_append(GTK_MENU_SHELL(m_popup), 
             gtk_menu_item_new_with_label(buf));
     }
 
     /* TODO: window */
     m_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_default_size(GTK_WINDOW(m_window), 200, 200);
+    gtk_window_set_default_size(GTK_WINDOW(m_window), 200, 600);
     gtk_container_set_border_width(GTK_CONTAINER(m_window), 16);
     g_object_connect(G_OBJECT(m_window), 
         "signal::destroy", G_CALLBACK(m_destroy_cb), NULL, 
