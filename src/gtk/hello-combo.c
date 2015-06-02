@@ -7,7 +7,6 @@
 
 static GtkWidget *m_window = NULL;
 static GtkWidget *m_popup = NULL;
-static int m_i = 0;
 
 static void m_destroy_cb(GtkWidget *widget, gpointer user_data) 
 {
@@ -29,7 +28,6 @@ static void m_menu_position(GtkMenu *menu,
     if (active) {
         gtk_menu_shell_select_item(GTK_MENU_SHELL(m_popup), active);
         gtk_widget_get_allocation(active, &allocation);
-        menu_ypos -= allocation.height;
     }
 
     printf("DEBUG: %s (%d, %d)\n", __func__, menu_xpos, menu_ypos);
@@ -45,15 +43,8 @@ static void m_button_press_cb(GtkStatusIcon *status_icon,
                               GdkEventButton *event, 
                               gpointer user_data) 
 {
-    char buf[32] = {'\0'};
-    
     if (event->button != 3)
         return;
-    
-    /* increase menu height */
-    snprintf(buf, sizeof(buf) - 1, "item %d", ++m_i);
-    gtk_menu_shell_append(GTK_MENU_SHELL(m_popup), 
-        gtk_menu_item_new_with_label(buf));
     
     gtk_widget_show_all(m_popup);
     gtk_menu_popup(GTK_MENU(m_popup), 
@@ -73,9 +64,9 @@ int main(int argc, char *argv[])
     
     /* TODO: popup */
     m_popup = gtk_menu_new();
-    for (m_i = 0; m_i < MENU_SIZE; m_i++) {
+    for (int i = 0; i < MENU_SIZE; i++) {
         memset(buf, 0, sizeof(buf));
-        snprintf(buf, sizeof(buf) - 1, "item %d", m_i + 1);
+        snprintf(buf, sizeof(buf) - 1, "item %d", i + 1);
         gtk_menu_shell_append(GTK_MENU_SHELL(m_popup), 
             gtk_menu_item_new_with_label(buf));
     }
