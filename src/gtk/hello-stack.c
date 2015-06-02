@@ -49,7 +49,7 @@ static void m_fill_store()
     GtkIconTheme *icon_theme;
     GList *contexts;
     GtkTreeIter iter;
-    char buf[16];
+    char buf[12];
     int l;
 
     icon_theme = gtk_icon_theme_get_for_screen(m_screen);
@@ -123,7 +123,7 @@ static void m_drag_data_get_cb(MosesIconView *icon_view,
                                guint time, 
                                gpointer user_data) 
 {
-    printf("DEBUG: %s %d %d\n", __func__, info, time);
+    //printf("DEBUG: %s %d %d\n", __func__, info, time);
 }
 
 static void m_drag_data_received_cb(MosesIconView *icon_view, 
@@ -135,7 +135,7 @@ static void m_drag_data_received_cb(MosesIconView *icon_view,
                                     guint time, 
                                     gpointer user_data) 
 {
-    printf("DEBUG: %s %d %d\n", __func__, info, time);
+    //printf("DEBUG: %s %d %d\n", __func__, info, time);
 }
 
 int main(int argc, char *argv[]) 

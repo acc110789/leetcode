@@ -5,7 +5,8 @@ AM_MAINTAINER_MODE
 AC_CONFIG_MACRO_DIR([m4])
 LT_INIT
 
-CFLAGS='-Wall -std=gnu99'
+# for gcc 5.x
+CFLAGS='-Wall -std=gnu11'
 
 GTK2_REQUIRED=2.24
 GTK3_REQUIRED=3.8.2

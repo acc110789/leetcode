@@ -6672,6 +6672,7 @@ moses_icon_view_maybe_begin_drag (MosesIconView    *icon_view,
   return retval;
 }
 
+/* TODO */
 /* Source side drag signals */
 static void 
 moses_icon_view_drag_begin (GtkWidget      *widget,
@@ -6682,6 +6683,7 @@ moses_icon_view_drag_begin (GtkWidget      *widget,
   cairo_surface_t *icon;
   gint x, y;
   GtkTreePath *path;
+  GtkTreeIter iter;
 
   icon_view = MOSES_ICON_VIEW (widget);
 
@@ -6701,6 +6703,12 @@ moses_icon_view_drag_begin (GtkWidget      *widget,
   y = icon_view->priv->press_start_y - item->cell_area.y + icon_view->priv->item_padding;
   
   path = gtk_tree_path_new_from_indices (item->index, -1);
+  gtk_tree_model_get_iter(icon_view->priv->model, &iter, path);
+  char* text = NULL;
+  gtk_tree_model_get(icon_view->priv->model, &iter, icon_view->priv->text_column, &text);
+  if (text) {
+    printf("DEBUG: %s %s\n", __func__, text);
+  }
   icon = moses_icon_view_create_drag_icon (icon_view, path);
   gtk_tree_path_free (path);
 
@@ -6812,6 +6820,7 @@ moses_icon_view_drag_leave (GtkWidget      *widget,
   remove_scroll_timeout (icon_view);
 }
 
+/* TODO: animation */
 static gboolean 
 moses_icon_view_drag_motion (GtkWidget      *widget,
 			   GdkDragContext *context,
@@ -6825,6 +6834,7 @@ moses_icon_view_drag_motion (GtkWidget      *widget,
   GdkDragAction suggested_action = 0;
   GdkAtom target;
   gboolean empty;
+  GtkTreeIter iter;
 
   icon_view = MOSES_ICON_VIEW (widget);
 
@@ -6871,7 +6881,7 @@ moses_icon_view_drag_motion (GtkWidget      *widget,
 
   if (path)
     gtk_tree_path_free (path);
-
+  
   return TRUE;
 }
 

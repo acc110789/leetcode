@@ -7,6 +7,7 @@ noinst_PROGRAMS = hello_layout	\
 				  hello_dnd	\
 				  hello_animation	\
 				  hello_clock	\
+				  hello_combo	\
 				  $(NULL)
 
 hello_layout_SOURCES = hello-layout.c
@@ -38,6 +39,10 @@ hello_clock_SOURCES = hello-clock.c	\
 					  $(BUILT_SOURCES)
 hello_clock_CFLAGS = $(GTK3_CFLAGS)
 hello_clock_LDADD = $(GTK3_LIBS)
+
+hello_combo_SOURCES = hello-combo.c
+hello_combo_CFLAGS = $(GTK3_CFLAGS)
+hello_combo_LDADD = $(GTK3_LIBS)
 
 resource_files = $(shell glib-compile-resources --generate-dependencies hello.gresource.xml)
 hello-resources.c: hello.gresource.xml $(resource_files)
