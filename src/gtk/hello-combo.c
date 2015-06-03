@@ -2,8 +2,7 @@
 
 #include <gtk/gtk.h>
 #include <string.h>
-
-#define MENU_SIZE 8
+#include <stdlib.h>
 
 static GtkWidget *m_window = NULL;
 static GtkWidget *m_popup = NULL;
@@ -11,6 +10,18 @@ static GtkWidget *m_popup = NULL;
 static void m_destroy_cb(GtkWidget *widget, gpointer user_data) 
 {
     gtk_main_quit(); 
+}
+
+static GdkRectangle m_get_monitor_geo()
+{
+    GdkRectangle r;
+    GdkDisplay* disp = gdk_display_get_default();
+    GdkScreen* screen = gdk_display_get_default_screen(disp);
+    gint mon_id = gdk_screen_get_primary_monitor(screen);
+
+    gdk_screen_get_monitor_geometry(screen, mon_id, &r);
+
+    return r;
 }
 
 static void m_menu_position(GtkMenu *menu, 
@@ -24,11 +35,16 @@ static void m_menu_position(GtkMenu *menu,
     int menu_xpos = event->x;
     int menu_ypos = event->y;
     GtkAllocation allocation;
+    GdkRectangle display_rect = m_get_monitor_geo();
 
     if (active) {
         gtk_menu_shell_select_item(GTK_MENU_SHELL(m_popup), active);
         gtk_widget_get_allocation(active, &allocation);
     }
+
+    gtk_widget_get_allocation(GTK_WIDGET(menu), &allocation);
+    if (display_rect.height - event->y_root < allocation.height)
+        menu_ypos -= allocation.height;
 
     printf("DEBUG: %s (%d, %d)\n", __func__, menu_xpos, menu_ypos);
     gdk_window_get_root_coords(gtk_widget_get_window(m_window), 
@@ -43,7 +59,7 @@ static void m_button_press_cb(GtkStatusIcon *status_icon,
                               GdkEventButton *event, 
                               gpointer user_data) 
 {
-    if (event->button != 3)
+    if (event->button != GDK_BUTTON_SECONDARY)
         return;
     
     gtk_widget_show_all(m_popup);
@@ -59,12 +75,15 @@ int main(int argc, char *argv[])
     GtkWidget *vbox = NULL;
     GtkWidget *combo = NULL;
     char buf[16];
+    unsigned int menu_size;
+
+    menu_size = argv[1] ? atoi(argv[1]) : 8;
 
     gtk_init(&argc, &argv);
     
     /* TODO: popup */
     m_popup = gtk_menu_new();
-    for (int i = 0; i < MENU_SIZE; i++) {
+    for (int i = 0; i < menu_size; i++) {
         memset(buf, 0, sizeof(buf));
         snprintf(buf, sizeof(buf) - 1, "item %d", i + 1);
         gtk_menu_shell_append(GTK_MENU_SHELL(m_popup), 
@@ -85,7 +104,7 @@ int main(int argc, char *argv[])
 
     /* TODO: combo */
     combo = gtk_combo_box_text_new();
-    for (int i = 0; i < MENU_SIZE; i++) {
+    for (int i = 0; i < menu_size; i++) {
         memset(buf, 0, sizeof(buf));
         snprintf(buf, sizeof(buf) - 1, "item %d", i + 1);
         gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combo), buf);
