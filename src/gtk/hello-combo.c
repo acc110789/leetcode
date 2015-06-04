@@ -6,6 +6,7 @@
 
 static GtkWidget *m_window = NULL;
 static GtkWidget *m_popup = NULL;
+static GtkWidget *m_dialog = NULL;
 
 static void m_destroy_cb(GtkWidget *widget, gpointer user_data) 
 {
@@ -70,6 +71,36 @@ static void m_button_press_cb(GtkStatusIcon *status_icon,
         event->button, event->time);
 }
 
+static void m_changed_cb(GtkComboBoxText *combo, gpointer user_data) 
+{
+    GtkWidget *content_area = NULL;
+
+    if (m_dialog)
+        return TRUE;
+
+    m_dialog = gtk_dialog_new_with_buttons(
+            gtk_combo_box_text_get_active_text(combo), 
+            GTK_WINDOW(m_window), 
+            GTK_DIALOG_MODAL | GTK_DIALOG_USE_HEADER_BAR, 
+            "_Cancel", GTK_RESPONSE_CANCEL, 
+            NULL, NULL, 
+            NULL);
+    gtk_window_set_default_size(GTK_WINDOW(m_dialog), 800, 600);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(m_dialog));
+    gtk_container_add(GTK_CONTAINER(content_area), gtk_label_new("Content"));
+
+    gtk_widget_show_all(m_dialog);
+
+    switch (gtk_dialog_run(GTK_DIALOG(m_dialog))) {
+    case GTK_RESPONSE_CANCEL:
+    default:
+        gtk_widget_destroy(m_dialog);
+        m_dialog = NULL;
+        break;
+    }
+}
+
 int main(int argc, char *argv[]) 
 {
     GtkWidget *vbox = NULL;
@@ -109,6 +140,9 @@ int main(int argc, char *argv[])
         snprintf(buf, sizeof(buf) - 1, "item %d", i + 1);
         gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combo), buf);
     }
+    g_object_connect(G_OBJECT(combo), 
+        "signal::changed", G_CALLBACK(m_changed_cb), NULL, 
+        NULL);
     gtk_box_pack_start(GTK_BOX(vbox), combo, FALSE, FALSE, 0);
 
     /* TODO: add */
