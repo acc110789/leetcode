@@ -80,6 +80,22 @@ static void m_dialog_destroy_cb(GtkDialog *dialog, gpointer user_data)
     }
 }
 
+static void m_dialog_response_cb(GtkDialog *dialog, 
+                                 gint response_id, 
+                                 gpointer user_data) 
+{
+    switch (response_id) {
+    case GTK_RESPONSE_ACCEPT:
+        printf("DEBUG: %s clicked Apply @%x\n", __func__, dialog);
+        break;
+    case GTK_RESPONSE_CANCEL:
+    default:
+        gtk_widget_destroy(m_dialog);
+        m_dialog = NULL;
+        break;
+    }
+}
+
 static void m_changed_cb(GtkComboBoxText *combo, gpointer user_data) 
 {
     GtkWidget *content_area = NULL;
@@ -91,12 +107,13 @@ static void m_changed_cb(GtkComboBoxText *combo, gpointer user_data)
             gtk_combo_box_text_get_active_text(combo), 
             GTK_WINDOW(m_window), 
             GTK_DIALOG_MODAL | GTK_DIALOG_USE_HEADER_BAR, 
-            NULL, NULL, 
-            NULL, NULL, 
+            "_Cancel", GTK_RESPONSE_CANCEL, 
+            "_Apply", GTK_RESPONSE_ACCEPT, 
             NULL);
     gtk_window_set_default_size(GTK_WINDOW(m_dialog), 800, 600);
     g_object_connect(G_OBJECT(m_dialog), 
-        "signal::destroy", G_CALLBACK(m_dialog_destroy_cb), NULL, 
+        "signal::destroy", G_CALLBACK(m_dialog_destroy_cb), NULL,
+        "signal::response", G_CALLBACK(m_dialog_response_cb), NULL,
         NULL);
 
     content_area = gtk_dialog_get_content_area(GTK_DIALOG(m_dialog));
