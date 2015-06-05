@@ -71,27 +71,41 @@ static void m_button_press_cb(GtkStatusIcon *status_icon,
         event->button, event->time);
 }
 
+static void m_dialog_destroy_cb(GtkDialog *dialog, gpointer user_data) 
+{
+    printf("DEBUG: %s\n", __func__);
+    if (m_dialog) {
+        gtk_widget_destroy(m_dialog);
+        m_dialog = NULL;
+    }
+}
+
 static void m_changed_cb(GtkComboBoxText *combo, gpointer user_data) 
 {
     GtkWidget *content_area = NULL;
 
     if (m_dialog)
-        return TRUE;
+        return;
 
     m_dialog = gtk_dialog_new_with_buttons(
             gtk_combo_box_text_get_active_text(combo), 
             GTK_WINDOW(m_window), 
             GTK_DIALOG_MODAL | GTK_DIALOG_USE_HEADER_BAR, 
-            "_Cancel", GTK_RESPONSE_CANCEL, 
+            NULL, NULL, 
             NULL, NULL, 
             NULL);
     gtk_window_set_default_size(GTK_WINDOW(m_dialog), 800, 600);
+    g_object_connect(G_OBJECT(m_dialog), 
+        "signal::destroy", G_CALLBACK(m_dialog_destroy_cb), NULL, 
+        NULL);
 
     content_area = gtk_dialog_get_content_area(GTK_DIALOG(m_dialog));
     gtk_container_add(GTK_CONTAINER(content_area), gtk_label_new("Content"));
 
     gtk_widget_show_all(m_dialog);
 
+    /* FIXME: gtk_dialog_run has a side-effect 
+     * https://bugzilla.gnome.org/show_bug.cgi?id=750384#c1
     switch (gtk_dialog_run(GTK_DIALOG(m_dialog))) {
     case GTK_RESPONSE_CANCEL:
     default:
@@ -99,6 +113,7 @@ static void m_changed_cb(GtkComboBoxText *combo, gpointer user_data)
         m_dialog = NULL;
         break;
     }
+    */
 }
 
 int main(int argc, char *argv[]) 
