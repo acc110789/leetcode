@@ -9,6 +9,8 @@ noinst_PROGRAMS = hello_layout	\
 				  hello_clock	\
 				  hello_combo	\
 				  hello_dlg	\
+				  hello_fc	\
+				  hello_tray	\
 				  $(NULL)
 
 hello_layout_SOURCES = hello-layout.c
@@ -48,6 +50,18 @@ hello_combo_LDADD = $(GTK3_LIBS)
 hello_dlg_SOURCES = hello-dlg.c
 hello_dlg_CFLAGS = $(GTK3_CFLAGS)
 hello_dlg_LDADD = $(GTK3_LIBS)
+
+hello_fc_SOURCES = hello-fc.c
+hello_fc_CFLAGS = $(GTK3_CFLAGS)
+hello_fc_LDADD = $(GTK3_LIBS)
+
+hello_tray_SOURCES = hello-tray.c	\
+					 na-tray-manager.c	\
+					 na-tray-child.c
+hello_tray_CFLAGS = $(GTK3_CFLAGS)	\
+					$(X11_CFLAGS)
+hello_tray_LDADD = $(GTK3_LIBS)	\
+				   $(X11_LIBS)
 
 resource_files = $(shell glib-compile-resources --generate-dependencies hello.gresource.xml)
 hello-resources.c: hello.gresource.xml $(resource_files)
