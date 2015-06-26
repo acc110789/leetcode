@@ -12,17 +12,50 @@ static void window_destroy(GtkWidget *widget, gpointer user_data)
     gtk_main_quit(); 
 }
 
+/*
+ * Thank Florian Müllner`s patch
+ * https://bugzilla.gnome.org/show_bug.cgi?id=751485
+ *
+ */
+static gboolean na_tray_draw_icon (GtkWidget *widget,
+                                   cairo_t   *cr,
+                                   gpointer   data)
+{
+    GtkWidget *socket = data;
+    GtkAllocation allocation;
+
+    if (!na_tray_child_has_alpha (NA_TRAY_CHILD (socket)))
+        return FALSE;
+
+    gtk_widget_get_allocation (socket, &allocation);
+
+    cairo_save (cr);
+    gdk_cairo_set_source_window (cr,
+                                 gtk_widget_get_window (socket),
+                                 allocation.x,
+                                 allocation.y);
+    cairo_rectangle (cr,
+                     allocation.x, allocation.y,
+                     allocation.width, allocation.height);
+    cairo_clip (cr);
+    cairo_paint (cr);
+    cairo_restore (cr);
+
+    return FALSE;
+}
+
 static void na_tray_icon_added(NaTrayManager *na_manager, 
                                GtkWidget *socket, 
                                gpointer data)
 {
-    na_tray_child_set_composited(NA_TRAY_CHILD(socket), FALSE);
-    
-    gtk_container_add(GTK_CONTAINER(flowbox), socket);
+    GtkWidget *child = gtk_flow_box_child_new ();
 
-    gtk_widget_set_visual(flowbox, gtk_widget_get_visual(socket));
+    g_signal_connect (child, "draw", G_CALLBACK (na_tray_draw_icon), socket);
 
-    gtk_widget_show(socket);
+    gtk_container_add(GTK_CONTAINER(flowbox), child);
+    gtk_container_add(GTK_CONTAINER(child), socket);
+
+    gtk_widget_show_all(child);
 }
 
 static void na_tray_icon_removed(NaTrayManager *na_manager, 
