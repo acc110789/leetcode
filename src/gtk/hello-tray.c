@@ -17,12 +17,14 @@ static void window_destroy(GtkWidget *widget, gpointer user_data)
  * https://bugzilla.gnome.org/show_bug.cgi?id=751485
  *
  */
-static gboolean na_tray_draw_icon (GtkWidget *widget,
-                                   cairo_t   *cr,
+static gboolean na_tray_draw_icon (GtkWidget *socket,
                                    gpointer   data)
 {
-    GtkWidget *socket = data;
+    cairo_t *cr = data;
     GtkAllocation allocation;
+
+    if (!NA_IS_TRAY_CHILD (socket))
+        return FALSE;
 
     if (!na_tray_child_has_alpha (NA_TRAY_CHILD (socket)))
         return FALSE;
@@ -30,6 +32,10 @@ static gboolean na_tray_draw_icon (GtkWidget *widget,
     gtk_widget_get_allocation (socket, &allocation);
 
     cairo_save (cr);
+#if DEBUG
+    g_message ("%s, line %d: (%d, %d)\n", 
+               __func__, __LINE__, allocation.x, allocation.y);
+#endif
     gdk_cairo_set_source_window (cr,
                                  gtk_widget_get_window (socket),
                                  allocation.x,
@@ -48,14 +54,9 @@ static void na_tray_icon_added(NaTrayManager *na_manager,
                                GtkWidget *socket, 
                                gpointer data)
 {
-    GtkWidget *child = gtk_flow_box_child_new ();
+    gtk_box_pack_start(GTK_BOX(flowbox), socket, FALSE, FALSE, 0);
 
-    g_signal_connect (child, "draw", G_CALLBACK (na_tray_draw_icon), socket);
-
-    gtk_container_add(GTK_CONTAINER(flowbox), child);
-    gtk_container_add(GTK_CONTAINER(child), socket);
-
-    gtk_widget_show_all(child);
+    gtk_widget_show(socket);
 }
 
 static void na_tray_icon_removed(NaTrayManager *na_manager, 
@@ -65,16 +66,27 @@ static void na_tray_icon_removed(NaTrayManager *na_manager,
     gtk_container_remove(GTK_CONTAINER(flowbox), socket);
 }
 
+static gboolean flowbox_draw(GtkWidget *flowbox, cairo_t *cr) 
+{
+    gtk_container_foreach(GTK_CONTAINER(flowbox), na_tray_draw_icon, cr);
+}
+
 int main(int argc, char *argv[]) 
 {
     GtkWidget *window = NULL;
     GdkScreen *screen = NULL;
-    GtkWidget *scrolled = NULL;
 
     gtk_init(&argc, &argv);
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(window), "Win7 style systray popup window");
+    /*
+     * TODO: Windows 7 style systray popup window
+     * 
+     * 1. "draw" all tray-children to popup window 
+     * 2. when XDamageNotify reorder the child to the first 
+     *
+     * gtk_window_set_title(GTK_WINDOW(window), "Win7 style systray popup window");
+     */
     gtk_window_resize(GTK_WINDOW(window), 300, 100);
     g_signal_connect(window, "destroy", G_CALLBACK(window_destroy), NULL);
 
@@ -90,19 +102,12 @@ int main(int argc, char *argv[])
         "signal::tray_icon_removed", G_CALLBACK(na_tray_icon_removed), NULL,
         NULL);
 
-    scrolled = gtk_scrolled_window_new(NULL, NULL);
-    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled), 
-                                   GTK_POLICY_NEVER, 
-                                   GTK_POLICY_AUTOMATIC);
-
-    flowbox = gtk_flow_box_new();
-    g_object_set(G_OBJECT(flowbox),
-        "margin", 10, "homogeneous", TRUE, "valign", GTK_ALIGN_START,
-        "column-spacing", 10, "row-spacing", 10,
+    flowbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    g_object_connect(G_OBJECT(flowbox), 
+        "signal::draw", G_CALLBACK(flowbox_draw), NULL, 
         NULL);
-    gtk_container_add(GTK_CONTAINER(scrolled), flowbox);
 
-    gtk_container_add(GTK_CONTAINER(window), scrolled);
+    gtk_container_add(GTK_CONTAINER(window), flowbox);
 
     gtk_widget_show_all(window);
 
