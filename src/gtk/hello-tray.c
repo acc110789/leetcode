@@ -4,6 +4,8 @@
 
 #include "na-tray-manager.h"
 
+#define TRAY_ICON_SIZE 22
+
 static NaTrayManager *na_tray_manager = NULL;
 static GtkWidget *flowbox = NULL;
 
@@ -33,8 +35,15 @@ static gboolean na_tray_draw_icon (GtkWidget *socket,
 
     cairo_save (cr);
 #if DEBUG
-    g_message ("%s, line %d: (%d, %d)\n", 
-               __func__, __LINE__, allocation.x, allocation.y);
+    g_message ("%s, line %d: (%d, %d) %dx%d\n", 
+               __func__, __LINE__, allocation.x, allocation.y, 
+               allocation.width, allocation.height);
+#endif
+#if 0
+    allocation.width = allocation.width > TRAY_ICON_SIZE ? 
+                       TRAY_ICON_SIZE : allocation.width;
+    allocation.height = allocation.height > TRAY_ICON_SIZE ? 
+                        TRAY_ICON_SIZE : allocation.height;
 #endif
     gdk_cairo_set_source_window (cr,
                                  gtk_widget_get_window (socket),
@@ -87,7 +96,7 @@ int main(int argc, char *argv[])
      *
      * gtk_window_set_title(GTK_WINDOW(window), "Win7 style systray popup window");
      */
-    gtk_window_resize(GTK_WINDOW(window), 300, 100);
+    gtk_window_resize(GTK_WINDOW(window), TRAY_ICON_SIZE, TRAY_ICON_SIZE);
     g_signal_connect(window, "destroy", G_CALLBACK(window_destroy), NULL);
 
     screen = gtk_window_get_screen(GTK_WINDOW(window));
