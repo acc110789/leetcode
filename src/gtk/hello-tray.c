@@ -39,12 +39,6 @@ static gboolean na_tray_draw_icon (GtkWidget *socket,
                __func__, __LINE__, allocation.x, allocation.y, 
                allocation.width, allocation.height);
 #endif
-#if 0
-    allocation.width = allocation.width > TRAY_ICON_SIZE ? 
-                       TRAY_ICON_SIZE : allocation.width;
-    allocation.height = allocation.height > TRAY_ICON_SIZE ? 
-                        TRAY_ICON_SIZE : allocation.height;
-#endif
     gdk_cairo_set_source_window (cr,
                                  gtk_widget_get_window (socket),
                                  allocation.x,
@@ -88,6 +82,12 @@ int main(int argc, char *argv[])
     gtk_init(&argc, &argv);
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+    gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_DOCK);
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_NONE);
+    gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
+    gtk_window_set_accept_focus(GTK_WINDOW(window), FALSE);
+    gtk_window_stick(GTK_WINDOW(window));
     /*
      * TODO: Windows 7 style systray popup window
      * 
@@ -96,7 +96,9 @@ int main(int argc, char *argv[])
      *
      * gtk_window_set_title(GTK_WINDOW(window), "Win7 style systray popup window");
      */
-    gtk_window_resize(GTK_WINDOW(window), TRAY_ICON_SIZE, TRAY_ICON_SIZE);
+    gtk_window_resize(GTK_WINDOW(window), 100, 40);
+    gtk_window_move(GTK_WINDOW(window), gdk_screen_width() - 100, 
+        gdk_screen_height() - 40);
     g_signal_connect(window, "destroy", G_CALLBACK(window_destroy), NULL);
 
     screen = gtk_window_get_screen(GTK_WINDOW(window));

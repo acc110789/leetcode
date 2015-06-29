@@ -66,7 +66,7 @@ static void m_button_press_cb(GtkStatusIcon *status_icon,
     gtk_widget_show_all(m_popup);
     gtk_menu_popup(GTK_MENU(m_popup), 
         NULL, NULL, 
-        m_menu_position/*NULL*/, 
+        NULL, //m_menu_position/*NULL*/, 
         event, 
         event->button, event->time);
 }
