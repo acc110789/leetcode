@@ -12,6 +12,7 @@ noinst_PROGRAMS = hello_layout	\
 				  hello_fc	\
 				  hello_tray	\
 				  hello_settings	\
+				  hello_popup	\
 				  $(NULL)
 
 hello_layout_SOURCES = hello-layout.c
@@ -67,6 +68,10 @@ hello_tray_LDADD = $(GTK3_LIBS)	\
 hello_settings_SOURCES = hello-settings.c
 hello_settings_CFLAGS = $(GTK3_CFLAGS)
 hello_settings_LDADD = $(GTK3_LIBS)
+
+hello_popup_SOURCES = hello-popup.c
+hello_popup_CFLAGS = $(GTK3_CFLAGS)
+hello_popup_LDADD = $(GTK3_LIBS)
 
 resource_files = $(shell glib-compile-resources --generate-dependencies hello.gresource.xml)
 hello-resources.c: hello.gresource.xml $(resource_files)
