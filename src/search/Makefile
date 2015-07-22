@@ -1,10 +1,10 @@
-CC=g++
-CFLAGS=-g -O2 -Wall -fPIC
-CPPPATH=
-LIBPATH=
-LIBS=
+CC		= g++
+CFLAGS	= -g -O2 -Wall -fPIC
+CPPPATH	=
+LIBPATH	=
+LIBS	=
 
-all: binary_search binary_tree hash_table boyer_moore
+all: binary_search binary_tree hash_table boyer_moore similar
 
 binary_search:
 	$(CC) -o binary_search.o -c $(CFLAGS) $(CPPPATH) binary_search.cpp
@@ -27,5 +27,9 @@ boyer_moore:
 	$(CC) -o boyer_moore boyer_moore.o BigInteger.o BigUnsigned.o \
 			 BigIntegerUtils.o BigUnsignedInABase.o $(LIBPATH) $(LIBS)
 
+similar:
+	$(CC) -o similar.o -c $(CFLAGS) $(CPPPATH) similar.c
+	$(CC) -o similar similar.o $(LIBPATH) $(LIBS)
+
 clean: 
-	rm -rf *.o binary_search binary_tree hash_table boyer_moore
+	rm -rf *.o binary_search binary_tree hash_table boyer_moore similar
