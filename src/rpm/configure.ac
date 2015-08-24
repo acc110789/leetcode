@@ -8,10 +8,20 @@ LT_INIT
 CFLAGS='-Wall -std=gnu11'
 
 RPM_REQUIRED=4.12.90
+GLIB2_REQUIRED=2.45.4
+POPT_REQUIRED=1.16
 
 PKG_CHECK_MODULES(RPM, rpm >= RPM_REQUIRED)
 AC_SUBST(RPM_CFLAGS)
 AC_SUBST(RPM_LIBS)
+
+PKG_CHECK_MODULES(GLIB2, glib-2.0 >= GLIB2_REQUIRED)
+AC_SUBST(GLIB2_CFLAGS)
+AC_SUBST(GLIB2_LIBS)
+
+PKG_CHECK_MODULES(POPT, popt >= POPT_REQUIRED)
+AC_SUBST(POPT_CFLAGS)
+AC_SUBST(POPT_LIBS)
 
 AC_ARG_ENABLE(debug,                                                                
               [AS_HELP_STRING([--enable-debug=@<:@no/yes@:>@],              
