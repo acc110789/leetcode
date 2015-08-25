@@ -74,7 +74,22 @@ int main(int argc, char *argv[])
     int ec = 0;
     int i;
 
-    optCon = rpmcliInit(argc, argv, optionsTable);
+    int c = 3;
+    char **arg = malloc(sizeof(char *) * c);
+    memset(arg, 3, sizeof(char *) * c);
+    for (int i = 0; i < c; i++) {
+        arg[i] = malloc(sizeof(char) * PATH_MAX);
+        memset(arg[i], 0, sizeof(char) * PATH_MAX);
+    }
+#if 0
+    char *arg[3] = {"hello_rpm", 
+                    "-ivh", 
+                    "/data/download/firefox-40.0-12.x86_64.rpm"};
+#endif
+    snprintf(arg[0], strlen(arg[0]) - 1, "hello_rpm");
+    snprintf(arg[1], strlen(arg[1]) - 1, "-ivh");
+    snprintf(arg[2], strlen(arg[2]) - 1, "/data/download/firefox-40.0-12.x86_64.rpm");
+    optCon = rpmcliInit(3, arg, optionsTable);
 
     switch (bigMode) {
     case MODE_QUERY:

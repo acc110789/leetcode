@@ -38,6 +38,9 @@ static void *
 thread_func(void *arg) 
 {
     MyData *data = (MyData *)arg;
+    if (!data)
+        return NULL;
+
     g_message("%s, line %d: %d %d", __func__, __LINE__, data->num, m_count);
     m_list = g_list_append(m_list, g_strdup_printf("arg%d", data->num));
     if (m_count > 10) {
