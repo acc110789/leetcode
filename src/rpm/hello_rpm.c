@@ -175,5 +175,16 @@ int main(int argc, char *argv[])
 
     rpmcliFini(optCon);
 
+    if (arg) {
+        for (int i = 0; i < c; i++) {
+            if (arg[i]) {
+                free(arg[i]);
+                arg[i] = NULL;
+            }
+        }
+        free(arg);
+        arg = NULL;
+    }
+
     return 0;
 }
