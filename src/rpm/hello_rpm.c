@@ -1,6 +1,7 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
  *
  * Copyright (C) 2015 Leslie Zhai <xiang.zhai@i-soft.com.cn>
+ * Copyright (C) 2015 fjiang <fujiang.zhu@i-soft.com.cn>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +25,13 @@
 #include <rpm/rpmcli.h>
 #include <rpm/rpmts.h>
 #include <glib/gi18n.h>
+
+static int rpmcliProgressState;
+static int rpmcliPackagesTotal;
+static int rpmcliHashesCurrent;
+static int rpmcliHashesTotal;
+static int rpmcliProgressCurrent;
+static int rpmcliProgressTotal;
 
 enum modes {
     MODE_QUERY      = (1 <<  0),
@@ -64,75 +72,158 @@ static struct poptOption optionsTable[] = {
     POPT_TABLEEND
 };
 
-int main(int argc, char *argv[]) 
+
+void * rpmShowProgress(const void * arg,
+                       const rpmCallbackType what,
+                       const rpm_loff_t amount,
+                       const rpm_loff_t total,
+                       fnpyKey key,
+                       void * data)
 {
-    rpmts ts = NULL;
-    enum modes bigMode = MODE_UNKNOWN;
-    QVA_t qva = &rpmQVKArgs;
-    struct rpmInstallArguments_s *ia = &rpmIArgs;
-    poptContext optCon;
-    int ec = 0;
-    int i;
+    Header h = (Header) arg;
+    int flags = (int) ((long)data);
+    void * rc = NULL;
+    const char * filename = (const char *)key;
+    static FD_t fd = NULL;
 
-    int c = 3;
-    char **arg = malloc(sizeof(char *) * c);
-    memset(arg, 3, sizeof(char *) * c);
-    for (int i = 0; i < c; i++) {
-        arg[i] = malloc(sizeof(char) * PATH_MAX);
-        memset(arg[i], 0, sizeof(char) * PATH_MAX);
-    }
-#if 0
-    char *arg[3] = {"hello_rpm", 
-                    "-ivh", 
-                    "/data/download/firefox-40.0-12.x86_64.rpm"};
-#endif
-    snprintf(arg[0], strlen(arg[0]) - 1, "hello_rpm");
-    snprintf(arg[1], strlen(arg[1]) - 1, "-ivh");
-    snprintf(arg[2], strlen(arg[2]) - 1, "/data/download/firefox-40.0-12.x86_64.rpm");
-    optCon = rpmcliInit(3, arg, optionsTable);
+    switch (what) {
+    case RPMCALLBACK_INST_OPEN_FILE:
+        if (filename == NULL || filename[0] == '\0')
+            return NULL;
+        fd = Fopen(filename, "r.ufdio");
+        /* FIX: still necessary? */
+        if (fd == NULL || Ferror(fd)) {
+            if (fd != NULL) {
+                Fclose(fd);
 
-    switch (bigMode) {
-    case MODE_QUERY:
-        qva->qva_mode = 'q';
+                fd = NULL;
+            }
+        } else
+            fd = fdLink(fd);
+        return (void *)fd;
         break;
-    case MODE_VERIFY:
-        qva->qva_mode = 'V';
+
+    case RPMCALLBACK_INST_CLOSE_FILE:
+        /* FIX: still necessary? */
+        fd = fdFree(fd);
+        if (fd != NULL) {
+            Fclose(fd);
+            fd = NULL;
+        }
         break;
+
+    case RPMCALLBACK_INST_START:
+    case RPMCALLBACK_UNINST_START:
+        if (rpmcliProgressState != what) {
+            rpmcliProgressState = what;
+            if (flags & INSTALL_HASH) {
+                if (what == RPMCALLBACK_INST_START) {
+                    fprintf(stdout, _("Updating / installing...\n"));
+                } else {
+                    fprintf(stdout, _("Cleaning up / removing...\n"));
+                }
+                fflush(stdout);
+            }
+        }
+
+        rpmcliHashesCurrent = 0;
+        if (h == NULL || !(flags & INSTALL_LABEL))
+            break;
+        if (flags & INSTALL_HASH) {
+            char *s = headerGetAsString(h, RPMTAG_NEVR);
+            if (isatty (STDOUT_FILENO))
+                fprintf(stdout, "%4d:%-33.33s", rpmcliProgressCurrent + 1, s);
+            else
+                fprintf(stdout, "%-38.38s", s);
+            (void) fflush(stdout);
+            free(s);
+        } else {
+            char *s = headerGetAsString(h, RPMTAG_NEVRA);
+            fprintf(stdout, "%s\n", s);
+            (void) fflush(stdout);
+            free(s);
+        }
+        break;
+
+    case RPMCALLBACK_INST_STOP:
+        break;
+
+    case RPMCALLBACK_TRANS_PROGRESS:
+    case RPMCALLBACK_INST_PROGRESS:
+    case RPMCALLBACK_UNINST_PROGRESS:
+        if (flags & INSTALL_PERCENT)
+            printf("\nin show progress: total[%d] amount[%d]-->[%f]\n",
+                (int) total,(int)amount,
+                (double) (total ? ((((float) amount) / total) * 100): 100.0));
+
+        (void) fflush(stdout);
+
+        break;
+
+    case RPMCALLBACK_TRANS_START:
+        rpmcliHashesCurrent = 0;
+        rpmcliProgressTotal = 1;
+        rpmcliProgressCurrent = 0;
+        rpmcliPackagesTotal = total;
+        rpmcliProgressState = what;
+        if (!(flags & INSTALL_LABEL))
+            break;
+        if (flags & INSTALL_HASH)
+            fprintf(stdout, "%-38s", _("Preparing..."));
+        else
+            fprintf(stdout, "%s\n", _("Preparing packages..."));
+        (void) fflush(stdout);
+        break;
+
+    case RPMCALLBACK_TRANS_STOP:
+        rpmcliProgressTotal = rpmcliPackagesTotal;
+        rpmcliProgressCurrent = 0;
+        break;
+
+    case RPMCALLBACK_UNINST_STOP:
+        break;
+    case RPMCALLBACK_UNPACK_ERROR:
+        break;
+
+    case RPMCALLBACK_CPIO_ERROR:
+        break;
+    case RPMCALLBACK_SCRIPT_ERROR:
+        break;
+    case RPMCALLBACK_SCRIPT_START:
+        break;
+    case RPMCALLBACK_SCRIPT_STOP:
+        break;
+    case RPMCALLBACK_UNKNOWN:
     default:
         break;
     }
 
-    if (bigMode == MODE_UNKNOWN || (bigMode & MODES_QV)) {
-        switch (qva->qva_mode) {
-        case 'q':
-            bigMode = MODE_QUERY;
-            break;
-        case 'V':
-            bigMode = MODE_VERIFY;
-            break;
-        default:
-            break;
-        }
-    }
+    return rc;
+}
 
-    if (bigMode == MODE_UNKNOWN || (bigMode & MODES_IE)) {
-        int iflags = (ia->installInterfaceFlags & 
-            (INSTALL_UPGRADE | INSTALL_FRESHEN | INSTALL_INSTALL | INSTALL_REINSTALL));
-        int eflags = (ia->installInterfaceFlags & INSTALL_ERASE);
-    
-        if (iflags & eflags)
-            g_error("only one major mode may be specified");
-        else if (iflags)
-            bigMode = MODE_INSTALL;
-        else if (eflags)
-            bigMode = MODE_ERASE;
-    }
+int main(int argc, char *argv[]) 
+{
+    rpmts ts = NULL;
+    enum modes bigMode = MODE_INSTALL;
+    struct rpmInstallArguments_s *ia = &rpmIArgs;
+    poptContext optCon;
+    int ec = 0;
+    int ret = 0;
+    char rpmFile[1][PATH_MAX];
+    memset(&rpmFile,0,PATH_MAX);
+    snprintf(rpmFile[0],PATH_MAX,"%s",argv[1]);
+    char *p[2];
+    p[0] = "";
+    p[1] = (char *)&rpmFile[0];
+    optCon = rpmcliInit(2, p, optionsTable);
+
+
+    printf("\n argc[%d],bigmode[%s]\n",argc,bigMode == MODE_UNKNOWN?"unknow":"others");
+    ia->installInterfaceFlags = INSTALL_INSTALL | INSTALL_LABEL | INSTALL_PERCENT;
 
     ts = rpmtsCreate();
     rpmtsSetRootDir(ts, rpmcliRootDir);
 
-    switch (bigMode) {
-    case MODE_INSTALL:
         if (!ia->incldocs) {
             if (rpmExpandNumeric("%{_excludedocs}"))
                 ia->transFlags |= RPMTRANS_FLAG_NODOCS;
@@ -154,37 +245,14 @@ int main(int argc, char *argv[])
             ia->relocations[ia->numRelocations].newPath = NULL;
         }
 
-        if (!poptPeekArg(optCon))
-            g_error(_("no packages given for install"));
-        else
-            ec += rpmInstall(ts, ia, (ARGV_t) poptGetArgs(optCon));
-
-        break;
-    case MODE_QUERY:
-        ec = rpmcliQuery(ts, qva, (ARGV_const_t) poptGetArgs(optCon));
-        break;
-    default:
-        break;
-    }
+    ret= rpmInstall(ts, ia, (ARGV_t) poptGetArgs(optCon));
+    printf("\n ret[%d]\n",ret);
 
     rpmtsFree(ts);
     ts = NULL;
 
-    free(qva->qva_queryFormat);
-    qva->qva_queryFormat = NULL;
-
     rpmcliFini(optCon);
-
-    if (arg) {
-        for (int i = 0; i < c; i++) {
-            if (arg[i]) {
-                free(arg[i]);
-                arg[i] = NULL;
-            }
-        }
-        free(arg);
-        arg = NULL;
-    }
 
     return 0;
 }
+
