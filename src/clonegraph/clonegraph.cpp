@@ -61,6 +61,7 @@ Node* clone(Node* graph)
     map[graph] = graphCopy;
  
     while (!q.empty()) {
+        std::cout << "traverse graph queue node" << std::endl;
         Node* node = q.front();
         q.pop();
         int n = node->neighbors.size();
