@@ -110,17 +110,17 @@ std::string serialize(node *root)
                 encode += std::to_string(vec[cur]->val) + ",";
                 if (vec[cur]->left)
                     vec.push_back(vec[cur]->left);
-                else if (vec[cur]->left == nullptr && vec[cur]->right)
+                else
                     encode += "null,";
                 if (vec[cur]->right)
                     vec.push_back(vec[cur]->right);
-                else if (vec[cur]->right == nullptr && vec[cur]->left)
+                else
                     encode += "null,";
             }
             cur++;
         }
     }
-    return encode.substr(0, encode.size() - 1) + "]";
+    return encode.substr(0, encode.size() - 11) + "]";
 }
 
 int main(int argc, char *argv[]) 
