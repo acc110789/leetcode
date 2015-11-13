@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
             ia->relocations[ia->numRelocations].newPath = NULL;
         }
 
-    ret= rpmInstall(ts, ia, (ARGV_t) poptGetArgs(optCon));
+    ret = rpmInstallISoftApp(ts, ia, (ARGV_t) poptGetArgs(optCon), NULL);
     printf("\n ret[%d]\n",ret);
 
     rpmtsFree(ts);
