@@ -23,6 +23,20 @@ PKG_CHECK_MODULES(POPT, popt >= POPT_REQUIRED)
 AC_SUBST(POPT_CFLAGS)
 AC_SUBST(POPT_LIBS)
 
+#=================
+# Check for libelf library. Prefer external, otherwise none.
+WITH_LIBELF_LIB=
+AC_CHECK_HEADER([libelf.h])
+AC_CHECK_HEADERS([gelf.h], [
+	AC_CHECK_LIB(elf, gelf_getvernaux, [
+	    AC_DEFINE(HAVE_LIBELF, 1, [Define to 1 if you have the 'elf' library (-lelf).])
+	    WITH_LIBELF_LIB="-lelf"
+	    WITH_LIBELF=yes
+	])
+])
+AC_SUBST(WITH_LIBELF_LIB)
+AM_CONDITIONAL(LIBELF,[test "$WITH_LIBELF" = yes])
+
 AC_ARG_ENABLE(debug,                                                                
               [AS_HELP_STRING([--enable-debug=@<:@no/yes@:>@],              
                               [turn on debugging [default=no]])],,
