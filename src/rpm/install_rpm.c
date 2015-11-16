@@ -1,5 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
  *
+ * Copyright (C) 1995-2001 Red Hat Software
  * Copyright (C) 2015 Leslie Zhai <xiang.zhai@i-soft.com.cn>
  * Copyright (C) 2015 fjiang <fujiang.zhu@i-soft.com.cn>
  *
