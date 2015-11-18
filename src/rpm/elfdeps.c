@@ -105,17 +105,16 @@ static void addDep(ARGV_t *deps,
 	return;
 
     if (ver || marker) {
-        printf("DEBUG: %s, line %d: %s %s %s\n", __func__, __LINE__, soname, ver, marker);
 	rasprintf(&dep,
 		  "%s(%s)%s", soname, ver ? ver : "", marker ? marker : "");
     }
+    /* TODO: add dep into list */
     argvAdd(deps, dep ? dep : soname);
     free(dep);
 }
 
 static void processVerDef(Elf_Scn *scn, GElf_Shdr *shdr, elfInfo *ei)
 {
-    printf("DEBUG: %s, line %d\n", __func__, __LINE__);
     Elf_Data *data = NULL;
     unsigned int offset, auxoffset;
     char *soname = NULL;
@@ -157,7 +156,6 @@ static void processVerDef(Elf_Scn *scn, GElf_Shdr *shdr, elfInfo *ei)
 
 static void processVerNeed(Elf_Scn *scn, GElf_Shdr *shdr, elfInfo *ei)
 {
-    printf("DEBUG: %s, line %d\n", __func__, __LINE__);
     Elf_Data *data = NULL;
     char *soname = NULL;
     while ((data = elf_getdata(scn, data)) != NULL) {
@@ -198,7 +196,6 @@ static void processVerNeed(Elf_Scn *scn, GElf_Shdr *shdr, elfInfo *ei)
 
 static void processDynamic(Elf_Scn *scn, GElf_Shdr *shdr, elfInfo *ei)
 {
-    printf("DEBUG: %s, %d\n", __func__, __LINE__);
     Elf_Data *data = NULL;
     while ((data = elf_getdata(scn, data)) != NULL) {
 	for (int i = 0; i < (shdr->sh_size / shdr->sh_entsize); i++) {

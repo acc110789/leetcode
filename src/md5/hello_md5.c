@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <limits.h>
 
 #include "md5.h"
 
@@ -108,6 +109,8 @@ int main(int argc, char *argv[])
     char *path = argv[1];
     struct stat buf;
     char md5sum[33] = { '\0' };
+
+    printf("DEBUG: PATH_MAX %d\n", PATH_MAX);
 
     if (stat(path, &buf) == -1) {
         printf("ERROR: failed to get %s stat\n", path);

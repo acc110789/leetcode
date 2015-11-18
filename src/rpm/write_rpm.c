@@ -23,7 +23,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define PATH "/tmp/test.rpm"
+#define PATH "/tmp/test-0.1.0-1.rpm"
 
 static void lead(const char *rpmPath, const char *rpmName) 
 {
