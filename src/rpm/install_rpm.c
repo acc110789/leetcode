@@ -74,17 +74,17 @@ static struct poptOption optionsTable[] = {
 };
 
 
-void * rpmShowProgress(const void * arg,
-                       const rpmCallbackType what,
-                       const rpm_loff_t amount,
-                       const rpm_loff_t total,
-                       fnpyKey key,
-                       void * data)
+void *rpmShowProgress(const void *arg,
+                      const rpmCallbackType what,
+                      const rpm_loff_t amount,
+                      const rpm_loff_t total,
+                      fnpyKey key,
+                      void *data)
 {
-    Header h = (Header) arg;
-    int flags = (int) ((long)data);
-    void * rc = NULL;
-    const char * filename = (const char *)key;
+    Header h = (Header)arg;
+    int flags = (int)((long)data);
+    void *rc = NULL;
+    const char *filename = (const char *)key;
     static FD_t fd = NULL;
 
     switch (what) {
@@ -92,11 +92,9 @@ void * rpmShowProgress(const void * arg,
         if (filename == NULL || filename[0] == '\0')
             return NULL;
         fd = Fopen(filename, "r.ufdio");
-        /* FIX: still necessary? */
         if (fd == NULL || Ferror(fd)) {
             if (fd != NULL) {
                 Fclose(fd);
-
                 fd = NULL;
             }
         } else
@@ -105,7 +103,6 @@ void * rpmShowProgress(const void * arg,
         break;
 
     case RPMCALLBACK_INST_CLOSE_FILE:
-        /* FIX: still necessary? */
         fd = fdFree(fd);
         if (fd != NULL) {
             Fclose(fd);
@@ -153,7 +150,7 @@ void * rpmShowProgress(const void * arg,
     case RPMCALLBACK_INST_PROGRESS:
     case RPMCALLBACK_UNINST_PROGRESS:
         if (flags & INSTALL_PERCENT)
-            printf("\nin show progress: total[%d] amount[%d]-->[%f]\n",
+            printf("in show progress: total[%d] amount[%d]-->[%f]\n",
                 (int) total,(int)amount,
                 (double) (total ? ((((float) amount) / total) * 100): 100.0));
 
@@ -205,54 +202,65 @@ void * rpmShowProgress(const void * arg,
 int main(int argc, char *argv[]) 
 {
     rpmts ts = NULL;
-    enum modes bigMode = MODE_INSTALL;
     struct rpmInstallArguments_s *ia = &rpmIArgs;
-    poptContext optCon;
+    poptContext optCon = NULL;
     int ec = 0;
     int ret = 0;
-    char rpmFile[1][PATH_MAX];
-    memset(&rpmFile,0,PATH_MAX);
-    snprintf(rpmFile[0],PATH_MAX,"%s",argv[1]);
-    char *p[2];
-    p[0] = "";
-    p[1] = (char *)&rpmFile[0];
-    optCon = rpmcliInit(2, p, optionsTable);
+    char **arg = NULL;
+    
+    arg = malloc(sizeof(char *) * argc);
+    memset(arg, 0, sizeof(char *) * argc);
+    for (int i = 0; i < argc; i++) {
+        arg[i] = malloc(sizeof(char) * PATH_MAX);
+        memset(arg[i], 0, sizeof(char) * PATH_MAX);
+        snprintf(arg[i], strlen(arg[i]) - 1, argv[i]);
+    }
+    optCon = rpmcliInit(argc, arg, optionsTable);
 
-
-    printf("\n argc[%d],bigmode[%s]\n",argc,bigMode == MODE_UNKNOWN?"unknow":"others");
     ia->installInterfaceFlags = INSTALL_INSTALL | INSTALL_LABEL | INSTALL_PERCENT;
 
     ts = rpmtsCreate();
     rpmtsSetRootDir(ts, rpmcliRootDir);
 
-        if (!ia->incldocs) {
-            if (rpmExpandNumeric("%{_excludedocs}"))
-                ia->transFlags |= RPMTRANS_FLAG_NODOCS;
-        }
+    if (!ia->incldocs) {
+        if (rpmExpandNumeric("%{_excludedocs}"))
+            ia->transFlags |= RPMTRANS_FLAG_NODOCS;
+    }
 
-        if (ia->noDeps) 
-            ia->installInterfaceFlags |= INSTALL_NODEPS;
+    if (ia->noDeps) 
+        ia->installInterfaceFlags |= INSTALL_NODEPS;
 
-        if (ia->prefix) {
-            ia->relocations = malloc(2 * sizeof(*ia->relocations));
-            ia->relocations[0].oldPath = NULL;   /* special case magic */
-            ia->relocations[0].newPath = ia->prefix;
-            ia->relocations[1].oldPath = NULL;
-            ia->relocations[1].newPath = NULL;
-        } else if (ia->relocations) {
-            ia->relocations = realloc(ia->relocations, 
-                sizeof(*ia->relocations) * (ia->numRelocations + 1));
-            ia->relocations[ia->numRelocations].oldPath = NULL;
-            ia->relocations[ia->numRelocations].newPath = NULL;
-        }
+    if (ia->prefix) {
+        ia->relocations = malloc(2 * sizeof(*ia->relocations));
+        ia->relocations[0].oldPath = NULL;   /* special case magic */
+        ia->relocations[0].newPath = ia->prefix;
+        ia->relocations[1].oldPath = NULL;
+        ia->relocations[1].newPath = NULL;
+    } else if (ia->relocations) {
+        ia->relocations = realloc(ia->relocations, 
+                          sizeof(*ia->relocations) * (ia->numRelocations + 1));
+        ia->relocations[ia->numRelocations].oldPath = NULL;
+        ia->relocations[ia->numRelocations].newPath = NULL;
+    }
 
-    ret = rpmInstallISoftApp(ts, ia, (ARGV_t) poptGetArgs(optCon), NULL);
-    printf("\n ret[%d]\n",ret);
+    rpmInstallISoftApp(ts, ia, (ARGV_t) poptGetArgs(optCon), NULL);
 
     rpmtsFree(ts);
     ts = NULL;
 
     rpmcliFini(optCon);
+    optCon = NULL;
+
+    if (arg) {
+        for (int i = 0; i < argc; i++) {
+            if (arg[i]) {
+                free(arg[i]);
+                arg[i] = NULL;
+            }
+        }
+        free(arg);
+        arg = NULL;
+    }
 
     return 0;
 }
