@@ -37,6 +37,20 @@ AC_CHECK_HEADERS([gelf.h], [
 AC_SUBST(WITH_LIBELF_LIB)
 AM_CONDITIONAL(LIBELF,[test "$WITH_LIBELF" = yes])
 
+#=================
+# Check for librpmbuild library. Prefer external, otherwise none.
+WITH_LIBRPMBUILD_LIB=
+AC_CHECK_HEADER([rpm/rpmbuild.h])
+AC_CHECK_HEADERS([rpm/rpmspec.h], [
+	AC_CHECK_LIB(rpmbuild, rpmSpecCheckDeps, [
+	    AC_DEFINE(HAVE_LIBRPMBUILD, 1, [Define to 1 if you have the 'rpmbuild' library (-lrpmbuild).])
+	    WITH_LIBRPMBUILD_LIB="-lrpmbuild"
+	    WITH_LIBRPMBUILD=yes
+	])
+])
+AC_SUBST(WITH_LIBRPMBUILD_LIB)
+AM_CONDITIONAL(LIBRPMBUILD,[test "$WITH_LIBRPMBUILD" = yes])
+
 AC_ARG_ENABLE(debug,                                                                
               [AS_HELP_STRING([--enable-debug=@<:@no/yes@:>@],              
                               [turn on debugging [default=no]])],,

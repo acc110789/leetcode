@@ -1,4 +1,5 @@
 noinst_PROGRAMS = install_rpm	\
+				  rpmbuild	\
 				  write_rpm	\
 				  elfdeps	\
 				  update_db	\
@@ -34,3 +35,13 @@ update_db_CFLAGS = $(RPM_CFLAGS)	\
 				   $(NULL)
 update_db_LDADD = $(RPM_LIBS)	\
 				  $(NULL)
+
+rpmbuild_CFLAGS = $(RPM_CFLAGS)  \
+				  $(GLIB2_CFLAGS)  \
+				  $(POPT_CFLAGS) \
+				  $(NULL)
+rpmbuild_LDADD = $(RPM_LIBS) \
+				 $(GLIB2_LIBS)  \
+				 $(POPT_LIBS)    \
+				 $(WITH_LIBRPMBUILD_LIB)	\
+				 $(NULL)
