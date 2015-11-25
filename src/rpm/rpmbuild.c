@@ -17,6 +17,7 @@
 #define _free(_ptr) rfree((_ptr))
 
 static struct rpmBuildArguments_s rpmBTArgs;
+static char m_fileName[PATH_MAX] = { '\0' };
 
 #define	POPT_NOLANG		-1012
 #define	POPT_RMSOURCE		-1013
@@ -524,7 +525,7 @@ static int buildForTarget(rpmts ts, const char * arg, BTA_t ba)
 	goto exit;
     }
 
-    if (rpmSpecBuild(spec, ba)) {
+    if (rpmSpecBuildISoftApp(spec, ba, m_fileName)) {
 	goto exit;
     }
     
@@ -709,6 +710,8 @@ int main(int argc, char *argv[])
     argvFree(build_targets);
 
     rpmcliFini(optCon);
+
+    printf("DEBUG: %s, line %d: %s\n", __func__, __LINE__, m_fileName);
 
     return 0;
 }
