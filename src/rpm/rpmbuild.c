@@ -525,7 +525,7 @@ static int buildForTarget(rpmts ts, const char * arg, BTA_t ba)
 	goto exit;
     }
 
-    if (rpmSpecBuildISoftApp(spec, ba, m_fileName)) {
+    if (rpmSpecBuild/*ISoftApp*/(spec, ba/*, m_fileName*/)) {
 	goto exit;
     }
     

@@ -3,6 +3,7 @@ noinst_PROGRAMS = install_rpm	\
 				  write_rpm	\
 				  elfdeps	\
 				  update_db	\
+				  parse_header	\
 				  $(NULL)
 
 install_rpm_CFLAGS = $(RPM_CFLAGS)	\
@@ -45,3 +46,10 @@ rpmbuild_LDADD = $(RPM_LIBS) \
 				 $(POPT_LIBS)    \
 				 $(WITH_LIBRPMBUILD_LIB)	\
 				 $(NULL)
+
+parse_header_CFLAGS = $(RPM_CFLAGS)  \
+					  $(GLIB2_CFLAGS)	\
+					  $(NULL)
+parse_header_LDADD = $(RPM_LIBS) \
+					 $(GLIB2_LIBS)	\
+					 $(NULL)
