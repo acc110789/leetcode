@@ -33,6 +33,10 @@ int main(int argc, char *argv[])
     char *Name = NULL;
     char *Version = NULL;
     char *Arch = NULL;
+    struct rpmtd_s pnames; 
+    char *pname = NULL;
+    struct rpmtd_s rnames;
+    char *rname = NULL;
     int i;
 
     fd = Fopen(argv[1] ? argv[1] : "/data/download/base/pkglist.005-extra", "r");
@@ -42,7 +46,6 @@ int main(int argc, char *argv[])
     }
     Fseek(fd, 0, SEEK_END);
     size = Ftell(fd);
-    printf("%ld\n", size);
     Fseek(fd, 0, SEEK_SET);
 
     if (size == -1)
@@ -62,6 +65,18 @@ int main(int argc, char *argv[])
                 Version = headerGetAsString(hdr, RPMTAG_VERSION);
                 Arch = headerGetAsString(hdr, RPMTAG_ARCH);
                 printf("%s %s %s\n", Name, Version, Arch);
+
+                headerGet(hdr, RPMTAG_PROVIDENAME, &pnames, HEADERGET_ARGV);
+                printf("* provide: %d\n", rpmtdCount(&pnames));
+                while (pname = rpmtdNextString(&pnames))
+                    printf("  %s\n", pname);
+
+                headerGet(hdr, RPMTAG_REQUIRENAME, &rnames, HEADERGET_ARGV);
+                printf("* require: %d\n", rpmtdCount(&rnames));
+                while (rname = rpmtdNextString(&rnames))
+                    printf("  %s\n", rname);
+
+                printf("\n\n");
 
                 headerFree(hdr);
                 hdr = NULL;
