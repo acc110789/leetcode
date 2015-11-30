@@ -26,9 +26,6 @@
 int main(int argc, char *argv[]) 
 {
     FD_t fd = NULL;
-    off_t size = -1; 
-    char *ptr = NULL;
-    GList *package_list = NULL;
     Header hdr = NULL;
     char *Name = NULL;
     char *Version = NULL;
@@ -44,55 +41,33 @@ int main(int argc, char *argv[])
         printf("ERROR: failed to open header file\n");
         goto exit;
     }
-    Fseek(fd, 0, SEEK_END);
-    size = Ftell(fd);
-    Fseek(fd, 0, SEEK_SET);
+    
+    while (hdr = headerRead(fd, HEADER_MAGIC_YES)) {
+        Name = headerGetAsString(hdr, RPMTAG_NAME);
+        Version = headerGetAsString(hdr, RPMTAG_VERSION);
+        Arch = headerGetAsString(hdr, RPMTAG_ARCH);
+        printf("%s %s %s\n", Name, Version, Arch);
 
-    if (size == -1)
-        goto exit;
-    ptr = malloc(size * sizeof(char));
-    if (ptr == NULL) {
-        printf("ERROR: failed to allocate memory\n");
-        goto exit;
-    }
-    Fread(ptr, size, sizeof(char), fd);
-    Fseek(fd, 0, SEEK_SET);
-    for (i = 0; i < size; i++) {
-        if (ptr[i] == 0xffffff8e) {
-            hdr = headerRead(fd, HEADER_MAGIC_YES);
-            if (hdr) {
-                Name = headerGetAsString(hdr, RPMTAG_NAME);
-                Version = headerGetAsString(hdr, RPMTAG_VERSION);
-                Arch = headerGetAsString(hdr, RPMTAG_ARCH);
-                printf("%s %s %s\n", Name, Version, Arch);
+        headerGet(hdr, RPMTAG_PROVIDENAME, &pnames, HEADERGET_ARGV);
+        printf("* provide: %d\n", rpmtdCount(&pnames));
+        while (pname = rpmtdNextString(&pnames))
+            printf("  %s\n", pname);
 
-                headerGet(hdr, RPMTAG_PROVIDENAME, &pnames, HEADERGET_ARGV);
-                printf("* provide: %d\n", rpmtdCount(&pnames));
-                while (pname = rpmtdNextString(&pnames))
-                    printf("  %s\n", pname);
+        headerGet(hdr, RPMTAG_REQUIRENAME, &rnames, HEADERGET_ARGV);
+        printf("* require: %d\n", rpmtdCount(&rnames));
+        while (rname = rpmtdNextString(&rnames))
+            printf("  %s\n", rname);
 
-                headerGet(hdr, RPMTAG_REQUIRENAME, &rnames, HEADERGET_ARGV);
-                printf("* require: %d\n", rpmtdCount(&rnames));
-                while (rname = rpmtdNextString(&rnames))
-                    printf("  %s\n", rname);
+        printf("\n\n");
 
-                printf("\n\n");
-
-                headerFree(hdr);
-                hdr = NULL;
-            }
-        }
+        headerFree(hdr);
+        hdr = NULL;
     }
 
 exit:
     if (fd) {
         Fclose(fd);
         fd = NULL;
-    }
-
-    if (ptr) {
-        free(ptr);
-        ptr = NULL;
     }
 
     return 0;
