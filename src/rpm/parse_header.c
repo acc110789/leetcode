@@ -18,8 +18,11 @@
  *
  */
 
+#include <fcntl.h>
+
 #include <rpm/rpmio.h>
 #include <rpm/header.h>
+#include <rpm/rpmdb.h>
 
 #include <glib.h>
 
@@ -34,14 +37,19 @@ int main(int argc, char *argv[])
     char *pname = NULL;
     struct rpmtd_s rnames;
     char *rname = NULL;
-    int i;
+    rpmdb db = NULL;
 
-    fd = Fopen(argv[1] ? argv[1] : "/data/download/base/pkglist.005-extra", "r");
+    fd = Fopen(argv[1] ? 
+               argv[1] : 
+               "/var/cache/isoftapp/base/koji.isoft.zhcn.cc.kojifiles.app.pkglist.005-extra", 
+               "r");
     if (fd == NULL) {
         printf("ERROR: failed to open header file\n");
         goto exit;
     }
     
+    openDatabase("/", "/var/lib/rpm", &db, O_RDONLY, 0644, 0);
+
     while (hdr = headerRead(fd, HEADER_MAGIC_YES)) {
         Name = headerGetAsString(hdr, RPMTAG_NAME);
         Version = headerGetAsString(hdr, RPMTAG_VERSION);
@@ -55,8 +63,15 @@ int main(int argc, char *argv[])
 
         headerGet(hdr, RPMTAG_REQUIRENAME, &rnames, HEADERGET_ARGV);
         printf("* require: %d\n", rpmtdCount(&rnames));
-        while (rname = rpmtdNextString(&rnames))
-            printf("  %s\n", rname);
+        while (rname = rpmtdNextString(&rnames)) {
+            if (rpmdbCountPackages(db, rname) == 0 && 
+                rpmdbCountPackagesISoftApp(db, rname) &&  
+                rpmdbCountProvides(db, rname) == 0) {
+                printf("  %s depend ERROR!!!\n", rname);
+            } else {
+                printf("  %s\n", rname);
+            }
+        }
 
         printf("\n\n");
 

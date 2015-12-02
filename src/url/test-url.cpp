@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
         std::cout << fromRange(uriParse.scheme) << std::endl;
         std::cout << fromRange(uriParse.hostText) << std::endl;
         std::cout << fromRange(uriParse.portText) << std::endl;
-        std::cout << fromList(uriParse.pathHead, "/") << std::endl;
+        std::cout << fromList(uriParse.pathHead, "-") << std::endl;
         std::cout << fromRange(uriParse.query) << std::endl;
         std::cout << fromRange(uriParse.fragment) << std::endl;
     }
