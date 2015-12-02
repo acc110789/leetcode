@@ -23,6 +23,7 @@
 #include <rpm/rpmio.h>
 #include <rpm/header.h>
 #include <rpm/rpmdb.h>
+#include <rpm/rpmtag.h>
 
 #include <glib.h>
 
@@ -64,10 +65,11 @@ int main(int argc, char *argv[])
         headerGet(hdr, RPMTAG_REQUIRENAME, &rnames, HEADERGET_ARGV);
         printf("* require: %d\n", rpmtdCount(&rnames));
         while (rname = rpmtdNextString(&rnames)) {
-            if (rpmdbCountPackages(db, rname) == 0 && 
-                rpmdbCountPackagesISoftApp(db, rname) &&  
-                rpmdbCountProvides(db, rname) == 0) {
-                printf("  %s depend ERROR!!!\n", rname);
+            if (rpmdbCountPackages(db, rname)           == 0    &&
+                rpmdbCountProvides(db, rname)           == 0    && 
+                !g_file_test(rname, G_FILE_TEST_EXISTS)         && 
+                strstr(rname, "rpmlib")                 == NULL) {
+                printf("  \033[33m%s\033[0m\n", rname);
             } else {
                 printf("  %s\n", rname);
             }
