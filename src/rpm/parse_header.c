@@ -27,13 +27,17 @@
 
 #include <glib.h>
 
+#define RPMTAG_MD5               (rpmTag)1000005
+
 int main(int argc, char *argv[]) 
 {
     FD_t fd = NULL;
     Header hdr = NULL;
     char *Name = NULL;
     char *Version = NULL;
+    char *Release = NULL;
     char *Arch = NULL;
+    char *Md5 = NULL;
     struct rpmtd_s pnames; 
     char *pname = NULL;
     struct rpmtd_s rnames;
@@ -54,8 +58,12 @@ int main(int argc, char *argv[])
     while (hdr = headerRead(fd, HEADER_MAGIC_YES)) {
         Name = headerGetAsString(hdr, RPMTAG_NAME);
         Version = headerGetAsString(hdr, RPMTAG_VERSION);
+        Release = headerGetAsString(hdr, RPMTAG_RELEASE);
         Arch = headerGetAsString(hdr, RPMTAG_ARCH);
-        printf("%s %s %s\n", Name, Version, Arch);
+        printf("%s-%s-%s-%s\n", Name, Version, Release, Arch);
+
+        Md5 = headerGetAsString(hdr, RPMTAG_MD5);
+        printf("%s\n", Md5);
 
         headerGet(hdr, RPMTAG_PROVIDENAME, &pnames, HEADERGET_ARGV);
         printf("* provide: %d\n", rpmtdCount(&pnames));
