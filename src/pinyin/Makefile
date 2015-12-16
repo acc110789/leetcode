@@ -4,15 +4,11 @@ CXXPATH		=
 LIBPATH		=
 LIBS		=
 
-all: pinyin-init test_hash
+all: pinyin-init
 
 pinyin-init:
 	$(CXX) -o pinyin-init.o -c $(CXXFLAGS) $(CXXPATH) pinyin-init.cpp
 	$(CXX) -o pinyin-init pinyin-init.o $(LIBPATH) $(LIBS)
 
-test_hash:
-	$(CXX) -o test_hash.o -c $(CXXFLAGS) $(CXXPATH) test_hash.cpp
-	$(CXX) -o test_hash test_hash.o $(LIBPATH) $(LIBS)
-
 clean: 
-	rm -rf *.o pinyin-init test_hash
+	rm -rf *.o pinyin-init
