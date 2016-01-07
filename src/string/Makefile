@@ -4,7 +4,7 @@ CPATH	=
 LIBPATH	=
 LIBS	= -lm
 
-all: strtok strcpy align heart
+all: strtok strcpy align heart snprintf
 
 strtok:
 	$(CC) -o strtok.o -c $(CFLAGS) $(CPATH) strtok.c
@@ -22,5 +22,9 @@ heart:
 	$(CC) -o heart.o -c $(CFLAGS) $(CPATH) heart.c
 	$(CC) -o heart heart.o $(LIBPATH) $(LIBS)
 
+snprintf:
+	$(CC) -o snprintf.o -c $(CFLAGS) $(CPATH) snprintf.c
+	$(CC) -o snprintf snprintf.o $(LIBPATH) $(LIBS)
+
 clean: 
-	rm -rf *.o strtok strcpy align heart
+	rm -rf *.o strtok strcpy align heart snprintf

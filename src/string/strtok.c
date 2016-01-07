@@ -24,7 +24,6 @@ char* LeslieStrtok(char* str, char* delim)
 
     s = m_oldstr;
 
-    /* FIXME: Mr.Cleanup */
     token = malloc(BUF_SIZE);
     assert(token);
 
@@ -47,14 +46,14 @@ char* LeslieStrtok(char* str, char* delim)
 
 int main(int argc, char *argv[]) 
 {
-    char str[BUF_SIZE] = {'\0'};
+    char str[BUF_SIZE] = {'\0'};    /* memset 0 */
     char delim[3] = ",|";
     char *token = NULL;
     
     if (argv[1]) 
-        snprintf(str, BUF_SIZE, argv[1]);
+        snprintf(str, sizeof(str) - 1, argv[1]);
     else 
-        snprintf(str, BUF_SIZE, "hello|world,leslie,zhai");
+        snprintf(str, sizeof(str) - 1, "hello|world,leslie,zhai");
     printf("strtok %s with %s\n", str, delim);
 
 #if 0
