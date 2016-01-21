@@ -1,3 +1,7 @@
+/*
+ * https://zh.wikipedia.org/wiki/Trie
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

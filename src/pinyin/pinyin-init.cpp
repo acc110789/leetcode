@@ -83,6 +83,9 @@ int main(int argc, char* argv[])
     std::cout << "の " << objPinYinInit->getInitials("の") << std::endl;
     std::cout << "Leslie " << objPinYinInit->getInitials("Leslie") << std::endl;
 
+    if (argv[1])
+        std::cout << argv[1] << objPinYinInit->getInitials(argv[1]) << std::endl;
+
     delete objPinYinInit;
     objPinYinInit = nullptr;
     
