@@ -22,6 +22,9 @@
 #include <string>
 #include <unordered_map>
 #include <fstream>
+#include <cstring>
+#include <iconv.h>
+#include <errno.h>
 
 #ifndef __PINYIN_INIT__
 #define __PINYIN_INIT__
@@ -52,8 +55,6 @@ public:
 
     PinYinArray pinyins() const { return m_pinyins; }
 
-    // FIXME: 需要判斷一下是否是漢字
-    // 0x7F 是ASCII（非扩展）表最后一个字符
     std::string getInitials(std::string str) 
     {
         std::string ret;
@@ -75,8 +76,73 @@ private:
 
 #endif // __PINYIN_INIT__
 
+int iconv_helper(char *from, const char *fromcode, char *to, const char *tocode) 
+{
+    iconv_t cd;
+    size_t from_size;
+    size_t to_size;
+    int ret = 0;
+
+    cd = iconv_open(tocode, fromcode);
+    if (cd == (iconv_t)-1) {
+        std::cerr << "ERROR: " << strerror(errno) << std::endl;
+        return -1;
+    }
+
+    from_size = strlen(from);
+    to_size = sizeof(to) - 1;
+    if (iconv(cd, &from, &from_size, &to, &to_size) == -1) {
+        std::cerr << "ERROR: " << from << " " << fromcode << " " << tocode << 
+            " " << strerror(errno) << std::endl;
+        ret = -1;
+    }
+
+    iconv_close(cd);
+
+    return ret;
+}
+
+// ASCII to Chinese
+void a2c(char *c, int h8, int l8) 
+{
+    char g[3];
+    g[0] = h8;
+    g[1] = l8;
+    g[2] = '\0';
+    if (iconv_helper(g, "GB2312", c, "UTF-8") == -1) {
+        memset(c, 0, sizeof(c));
+        if (iconv_helper(g, "GBK", c, "UTF-8") == -1) {
+            memset(c, 0, sizeof(c));
+            iconv_helper(g, "BIG5", c, "UTF-8");
+        }
+    }
+    std::cout << g << " " << c << std::endl;
+}
+
+// Chinese to ASCII
+void c2a(const char *c, int *h8, int *l8) 
+{
+    char to[6] = { '\0' };
+
+    if (iconv_helper((char *)c, "UTF-8", to, "GB2312") == -1) {
+        memset(to, 0, sizeof(to));
+        if (iconv_helper((char *)c, "UTF-8", to, "GBK") == -1) {
+            memset(to, 0, sizeof(to));
+            iconv_helper((char *)c, "UTF-8", to, "BIG5");
+        }
+    }
+    *h8 = (unsigned char)to[0];
+    *l8 = (unsigned char)to[1];
+    std::cout << c << " " << to << " " << *h8 << " " << *l8 << std::endl;
+}
+
 int main(int argc, char* argv[]) 
 {
+    int h8, l8;
+    char to[6] = { '\0' };
+    a2c(to, 181, 212);
+    c2a(argv[1] ? argv[1] : "孙", &h8, &l8);
+
     PinYinInit* objPinYinInit = new PinYinInit;
 
     std::cout << "澀兔子 " << objPinYinInit->getInitials("澀兔子") << std::endl;
