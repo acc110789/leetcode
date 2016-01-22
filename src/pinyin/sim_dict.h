@@ -74,7 +74,7 @@ protected:
 
 protected:
     void freeSubTree(TState& root);
-    void insertWord(const TWCHAR* wstr, TSIMWordId id);
+    int insertWord(const TWCHAR* wstr, TSIMWordId id);
     void InnerPrint(FILE* fp, wstring & wstr, const TState* pnode);
 };
 

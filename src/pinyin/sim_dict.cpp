@@ -117,7 +117,11 @@ CSIMDict::parseText(const char* filename)
             if (id < SIM_ID_REALWORD_START)
                 continue;
             if (MBSTOWCS(wword, pstart, sizeof(buf)) != (size_t)-1) {
-                insertWord(wword, TSIMWordId(id));
+                if (insertWord(wword, TSIMWordId(id)) == -1) {
+                    fprintf(stderr, 
+                            "Catch exception when loading dictionary at %s, exiting...\n", 
+                            buf);
+                }
             } else {
                 fprintf(stderr,
                         "mbs to wcs conversion error for : %s %d\n",
@@ -139,7 +143,7 @@ CSIMDict::parseText(const char* filename)
     return true;
 }
 
-void
+int
 CSIMDict::insertWord(const TWCHAR* wstr, TSIMWordId id)
 {
     TState* ps = &m_root;
@@ -154,8 +158,7 @@ CSIMDict::insertWord(const TWCHAR* wstr, TSIMWordId id)
         if (it != map.end() && nodeId != SIM_ID_NOT_WORD &&
             it->second.word_id != SIM_ID_NOT_WORD && it->second.word_id !=
             nodeId) {
-            //throw new int(100);
-            return;
+            return -1;
         }
         if (it != map.end()) {
             if (nodeId != SIM_ID_NOT_WORD)
@@ -165,6 +168,7 @@ CSIMDict::insertWord(const TWCHAR* wstr, TSIMWordId id)
             ps = &(map[ch] = TState(nodeId));
         }
     }
+    return 0;
 }
 
 void
