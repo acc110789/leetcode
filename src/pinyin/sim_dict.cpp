@@ -119,7 +119,7 @@ CSIMDict::parseText(const char* filename)
             if (MBSTOWCS(wword, pstart, sizeof(buf)) != (size_t)-1) {
                 if (insertWord(wword, TSIMWordId(id)) == -1) {
                     fprintf(stderr, 
-                            "Catch exception when loading dictionary at %s, exiting...\n", 
+                            "failed to insert %s\n", 
                             buf);
                 }
             } else {
