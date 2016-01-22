@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
  *
- * Copyright (C) 2015 Leslie Zhai <xiang.zhai@i-soft.com.cn>
+ * Copyright (C) 2015 - 2016 Leslie Zhai <xiang.zhai@i-soft.com.cn>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #ifndef __PINYIN_INIT__
 #define __PINYIN_INIT__
 
+// O(1) is super fast enough! so Chinese To Pinyin does not need to use Trie...
 typedef std::unordered_map<std::string, std::string> PinYinArray;
 typedef std::unordered_map<std::string, std::string>::iterator PinYinIter;
 
@@ -78,9 +79,9 @@ private:
 
 int iconv_helper(char *from, const char *fromcode, char *to, const char *tocode) 
 {
-    iconv_t cd;
-    size_t from_size;
-    size_t to_size;
+    iconv_t cd = (iconv_t)-1;
+    size_t from_size = -1;
+    size_t to_size = -1;
     int ret = 0;
 
     cd = iconv_open(tocode, fromcode);
@@ -98,6 +99,7 @@ int iconv_helper(char *from, const char *fromcode, char *to, const char *tocode)
     }
 
     iconv_close(cd);
+    cd = (iconv_t)-1;
 
     return ret;
 }
@@ -110,9 +112,9 @@ void a2c(char *c, int h8, int l8)
     g[1] = l8;
     g[2] = '\0';
     if (iconv_helper(g, "GB2312", c, "UTF-8") == -1) {
-        memset(c, 0, sizeof(c));
+        memset(c, 0, strlen(c));
         if (iconv_helper(g, "GBK", c, "UTF-8") == -1) {
-            memset(c, 0, sizeof(c));
+            memset(c, 0, strlen(c));
             iconv_helper(g, "BIG5", c, "UTF-8");
         }
     }
