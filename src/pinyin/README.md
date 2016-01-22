@@ -6,3 +6,11 @@
 
 而使用libgooglepinyin 的原始字典 rawdict_utf8_65105_freq.txt 可以查到收錄的
 繁體字對應的讀音。
+
+
+## Profile
+
+```
+./pinyin 
+gprof ./pinyin gmon.out > profile
+```

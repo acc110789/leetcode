@@ -29,6 +29,8 @@
 #ifndef __PINYIN_INIT__
 #define __PINYIN_INIT__
 
+typedef unsigned int TWCHAR;
+
 // O(1) is super fast enough! so Chinese To Pinyin does not need to use Trie...
 typedef std::unordered_map<std::string, std::string> PinYinArray;
 typedef std::unordered_map<std::string, std::string>::iterator PinYinIter;
@@ -144,6 +146,9 @@ int main(int argc, char* argv[])
     char to[6] = { '\0' };
     a2c(to, 181, 212);
     c2a(argv[1] ? argv[1] : "孙", &h8, &l8);
+
+    TWCHAR wword[1024] = { '\0' };
+    std::cout << wword << std::endl;
 
     PinYinInit* objPinYinInit = new PinYinInit;
 
