@@ -1,8 +1,8 @@
-CC=gcc
-CFLAGS=-g -O2 -Wall -fPIC
-CPPPATH=
-LIBPATH=
-LIBS=-lm
+CC		= gcc
+CFLAGS	= -g -O2 -Wall -fPIC
+CPPPATH	=
+LIBPATH	=
+LIBS	= -lm
 
 all: liuhui
 
