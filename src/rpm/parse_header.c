@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     char *Release = NULL;
     char *Arch = NULL;
     char *Md5 = NULL;
+    char *Size = NULL;
     struct rpmtd_s pnames; 
     char *pname = NULL;
     struct rpmtd_s rnames;
@@ -46,7 +47,7 @@ int main(int argc, char *argv[])
 
     fd = Fopen(argv[1] ? 
                argv[1] : 
-               "/var/cache/isoftapp/base/koji.isoft.zhcn.cc.kojifiles.app.pkglist.005-extra", 
+               "/var/cache/isoftapp/base/app.isoft-linux.org.4.0.x86_64.pkglist.005-extra", 
                "r");
     if (fd == NULL) {
         printf("ERROR: failed to open header file\n");
@@ -60,7 +61,8 @@ int main(int argc, char *argv[])
         Version = headerGetAsString(hdr, RPMTAG_VERSION);
         Release = headerGetAsString(hdr, RPMTAG_RELEASE);
         Arch = headerGetAsString(hdr, RPMTAG_ARCH);
-        printf("%s-%s-%s-%s\n", Name, Version, Release, Arch);
+        Size = headerGetAsString(hdr, RPMTAG_SIZE);
+        printf("%s-%s-%s-%s %s\n", Name, Version, Release, Arch, Size);
 
         Md5 = headerGetAsString(hdr, RPMTAG_MD5);
         printf("%s\n", Md5);
