@@ -8,8 +8,8 @@ int main(int argc, char *argv[])
     int b = 1;
     float c = 124.0f;
 
-    printf("sizeof(a)=%d sizeof(short)=%d a=%g b=%d c=%g\n", 
-        sizeof(a), sizeof(short), (short)a, b, c);
+    printf("sizeof(a)=%d sizeof(int)=%d sizeof(short)=%d sizeof(b)=%d a=%g b=%d c=%g\n", 
+        sizeof(a), sizeof(int), sizeof(short), sizeof(b), (short)a, b, c);
     printf("sizeof(a)=%d sizeof(short)=%d a=%g b=%d c=%g\n", 
         sizeof(a), sizeof(short), a, b, c);
 
