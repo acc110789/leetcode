@@ -1,0 +1,204 @@
+.pricing-div * {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+-moz-box-sizing: border-box;
+}
+
+.pricing-div html, .pricing-div body, .pricing-div div, .pricing-div span, .pricing-div applet, .pricing-div object, .pricing-div iframe, .pricing-div h1, .pricing-div h2, .pricing-div h3, .pricing-div h4, .pricing-div h5, .pricing-div h6, .pricing-div p, .pricing-div blockquote, .pricing-div pre, .pricing-div a, .pricing-div abbr, .pricing-div acronym, .pricing-div address, .pricing-div big, .pricing-div cite, .pricing-div code, .pricing-div del, .pricing-div dfn, .pricing-div em, .pricing-div img, .pricing-div ins, .pricing-div kbd, .pricing-div q, .pricing-div s, .pricing-div samp, .pricing-div small, .pricing-div strike, .pricing-div strong, .pricing-div sub, .pricing-div sup, .pricing-div tt, .pricing-div var, .pricing-div b, .pricing-div u, .pricing-div i, .pricing-div center, .pricing-div dl, .pricing-div dt, .pricing-div dd, .pricing-div ol, .pricing-div ul, .pricing-div li, .pricing-div fieldset, .pricing-div form, .pricing-div label, .pricing-div legend, .pricing-div table, .pricing-div caption, .pricing-div tbody, .pricing-div tfoot, .pricing-div thead, .pricing-div tr, .pricing-div th, .pricing-div td, .pricing-div article, .pricing-div aside, .pricing-div canvas, .pricing-div details, .pricing-div figcaption, .pricing-div figure, .pricing-div footer, .pricing-div header, .pricing-div hgroup, .pricing-div menu, .pricing-div nav, .pricing-div section, .pricing-div summary, .pricing-div time, .pricing-div mark, .pricing-div audio, .pricing-div video {
+margin: 0;
+padding: 0;
+border: 0;
+outline: 0;
+font-size: 100%;
+font: inherit;
+vertical-align: top;
+box-sizing: border-box;
+-moz-box-sizing: border-box;
+}
+
+.pricing-div {
+font-family: "helvetica", sans-serif, Serif;
+font-style: normal;
+font-weight: normal;
+text-align: center;
+font-size: 16px;
+color: rgba(39,65,90,1);
+}
+
+.pricing-div h4 {
+margin-bottom: 12px;
+font-size: 1.25em;
+font-weight: 400;
+text-transform: uppercase;
+line-height: 1;
+}
+
+.pricing-div h5 {
+font-size: 1.75em;
+}
+
+.pricing-div p {
+margin-top: 1em;
+margin-bottom: 1em;
+color: rgba(39,65,90,.9);
+font-size: 1.25em;
+line-height: 1.625em;
+}
+
+
+.pricing-div ol, .pricing-div ul {
+list-style: none;
+}
+
+.pricing-div strong {
+color: rgba(39,65,90,1);
+font-weight: 600;
+}
+
+.pricing-div .plans {
+background: #e7f2f0;
+}
+
+.pricing-div .layer {
+clear: both;
+width: 100%;
+height: auto;
+/*padding: 60px 7.5% 60px;*/
+display: block;
+}
+
+.pricing-div .layer > section, .pricing-div .layer > article {
+clear: both;
+width: 100%;
+height: auto;
+max-width: 1092px;
+margin: 0 auto;
+display: block;
+}
+
+.pricing-div .third {
+width: 35.95%;
+margin: 0 30px 0 0;
+display: inline-block;
+}
+
+.pricing-div .plan-tier {
+background: white;
+vertical-align: baseline;
+border-radius: 3px;
+-moz-border-radius: 3px;
+cursor: pointer;
+overflow: hidden;
+}
+
+.pricing-div .lift {
+position: relative;
+-webkit-transition: all .075s ease-out;
+-moz-transition: all .075s ease-out;
+-o-transition: all .075s ease-out;
+transition: all .075s ease-out;
+}
+
+.pricing-div .lift:hover {
+top: -3px;
+-webkit-box-shadow: 0 2px 6px rgba(39,65,90,.15);
+-moz-box-shadow: 0 2px 6px rgba(39,65,90,.15);
+box-shadow: 0 2px 6px rgba(39,65,90,.15);
+}
+
+.pricing-div .plan-tier h4 {
+padding: 18px 0 15px;
+margin: 0 0 30px;
+background: #00a1ff;
+color: white;
+}
+
+.pricing-div .plan-tier {
+cursor: pointer;
+}
+
+.pricing-div .plan-tier sup {
+position: relative;
+top: 24px;
+}
+
+.pricing-div .plan-tier ul {
+margin: 30px 0 0;
+border-top: 2px solid #e7f2f0;
+}
+
+.pricing-div .plan-tier ul li {
+font-size: 1.25em;
+padding: 18px 0;
+color: rgba(39,65,90,.9);
+border-bottom: 2px solid #e7f2f0;
+}
+
+.pricing-div sup {
+vertical-align: top;
+}
+
+.pricing-div .plan-tier .plan-price {
+font-size: 5em;
+letter-spacing: -3px;
+}
+
+.pricing-div .plan-tier sub {
+vertical-align: bottom;
+position: relative;
+bottom: .875em;
+}
+
+.pricing-div .plan-tier .early-adopter-price {
+color: #0091e5;
+}
+.pricing-div p:first-of-type {
+margin-top: 0;
+}
+
+.pricing-div small, .pricing-div del {
+color: rgba(39,65,90,.5);
+font-size: 22px;
+line-height: 1.5em;
+}
+
+.pricing-div s, .pricing-div strike, .pricing-div del {
+text-decoration: line-through;
+}
+
+
+.pricing-div .layer {
+padding-top: 90px;
+padding-bottom: 90px;
+margin-top: -25px;
+}
+
+.pricing-div .plan-tier.callout h6 {
+width: 100%;
+padding: 15px 0 14px;
+background: #8dcf3f;
+color: rgba(39,65,90,.5);
+font-size: 1.25em;
+}
+
+.pricing-div .plan-tier.callout h4 {
+background-color: #78b336;
+}
+
+.pricing-div ul.desc li {
+  min-height: 92px;
+  font-size: 22px;
+  padding: 27px 13px;
+}
+
+.pricing-div .buy {
+padding: 14px 24px;
+font-size: 21px;
+line-height: 1.33;
+border-radius: 6px;
+}
+
+.pricing-div .buynow {
+padding: 25px 0;
+}
