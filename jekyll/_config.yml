@@ -1,6 +1,0 @@
-pygments: true
-relative_permalinks: false
-permalink: /questions/:title
-excerpt_separator: 
-site.url: http://www.leetcode.cn
-timezone: Asia/Shanghai
