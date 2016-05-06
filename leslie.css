@@ -1,1 +1,5 @@
 div.leslie-body { margin: 0 auto; width: 800px; }
+
+div#leslie-logo { display: block; height: 64px; }
+div#leslie-logo img { float: left; }
+div#leslie-logo h1 { float: left; }
