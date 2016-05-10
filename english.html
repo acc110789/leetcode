@@ -11,7 +11,46 @@
   <iframe src="./header.html" width="800px" height="500px" scrolling="no" frameborder="0"></iframe>
 
   <h2>为什么英语那么烂？</h2>
-  <p>从初中（90后从小学）就开始学习英语，至少学了10+年英语，但还是看专业（例如，<a href="https://www.gnu.org/software/libc/" target="_blank">glibc</a>）手册很吃力，给开源软件作者写邮件不知所云，听GNOME Summit、<a href="https://akademy.kde.org" target="_blank">KDE Akademy</a>演讲者发言像听天书，和国外程序员交流开不了口！是智商问题吗？！</p>
+  <p>从初中（90后从小学）就开始学习英语，至少学了10+年英语，但还是看专业（例如，<a href="https://www.gnu.org/software/libc/" target="_blank">glibc</a>）手册很吃力，给开源软件作者写邮件不知所云，听GNOME Summit、<a href="https://akademy.kde.org" target="_blank">KDE Akademy</a>演讲者发言像听天书，和国外程序员交流开不了口！是智商问题吗？！很多偏科的（英语考试一般不及格）理科生要不服气了：<a href="https://www.zhihu.com/question/23542273" target="_blank">记忆力怎么能算智商</a>？！不服气吗？</p>
+  <h3>来做道阅读理解题</h3>
+  <p>Many of the remaining functions refer to the input and output queues of a terminal device. These queues implement a form of buffering within the kernel independent of the buffering implemented by I/O streams.
+
+The terminal input queue is also sometimes referred to as its typeahead buffer. It holds the characters that have been received from the terminal but not yet read by any process.
+
+The size of the input queue is described by the MAX_INPUT and _POSIX_MAX_INPUT parameters. You are guaranteed a queue size of at least MAX_INPUT, but the queue might be larger, and might even dynamically change size. If input flow control is enabled by setting the IXOFF input mode bit, the terminal driver transmits STOP and START characters to the terminal when necessary to prevent the queue from overflowing. Otherwise, input may be lost if it comes in too fast from the terminal. In canonical mode, all input stays in the queue until a newline character is received, so the terminal input queue can fill up when you type a very long line.
+
+The terminal output queue is like the input queue, but for output; it contains characters that have been written by processes, but not yet transmitted to the terminal. If output flow control is enabled by setting the IXON input mode bit, the terminal driver obeys START and STOP characters sent by the terminal to stop and restart transmission of output.
+
+Clearing the terminal input queue means discarding any characters that have been received but not yet read. Similarly, clearing the terminal output queue means discarding any characters that have been written but not yet transmitted.</p>
+  <p>问题：The size of the input queue is</p>
+  <p>A: MAX_INPUT</p>
+  <p>B: larger than 1024</p>
+  <p>C: dynamically change size</p>
+  <p>D: _POSIX_MAX_INPUT</p>
+
+  <h3>来写封电子邮件</h3>
+  <p><a href="https://mail.kde.org/pipermail/plasma-devel/2015-August/042974.html" target="_blank">反驳"I remember pointing you at user-accounts"</a></p>
+  <p>I am very confused. Can I check I have everything straight.
+
+We had kcm_useraccounts in plasma-desktop, which is super old and rubbish
+
+We had user-manager, somwhere, which is Alex's one.It uses
+accounts-service, via it's own lib
+
+In plasma-desktop we have a branch caller user-accounts by Leslie and
+FJiang with a lot of recent commits
+This contains a modification of kcm_useraccounts, but using hawaii's
+QtAccountsService :/
+
+
+Leslie, I remember pointing you at user-accounts.
+
+You even replied,
+"I just wanna join the user-manager project, thanks a lot!"
+
+How come you then ended up changing to doing something else?</p>
+
+  <h3>你看美剧的时候敢把字幕关掉吗？！</h3>
 
   <div id="disqus_thread"></div>
   <script>
