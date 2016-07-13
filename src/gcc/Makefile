@@ -1,15 +1,13 @@
 CC			= gcc
-#CC			= clang
 CXX     	= g++
-#CXX			= clang++
 CFLAGS		= -g -pedantic -Wall -Wunused -std=gnu99
-CXXFLAGS 	= -g -pedantic -Wall -Wunused
+CXXFLAGS 	= -g -Wall -Werror -fdelete-null-pointer-checks -std=c++14
 CPATH		=
 CXXPATH		=
 LIBPATH		=
 LIBS		=
 
-all: switch sonald-switch uninit-struct
+all: switch sonald-switch uninit-struct testcase
 
 switch:
 	$(CC) -o switch.o -c $(CFLAGS) $(CPATH) switch.c
@@ -23,5 +21,9 @@ uninit-struct:
 	$(CXX) -o uninit-struct.o -c $(CXXFLAGS) $(CXXPATH) uninit-struct.cpp
 	$(CXX) -o uninit-struct uninit-struct.o $(LIBPATH) $(LIBS)
 
+testcase:
+	$(CXX) -o testcase.o -c $(CXXFLAGS) $(CXXPATH) testcase.cpp
+	$(CXX) -o testcase testcase.o $(LIBPATH) $(LIBS)
+
 clean: 
-	rm -rf *.o switch sonald-switch uninit-struct
+	rm -rf *.o switch sonald-switch uninit-struct testcase
