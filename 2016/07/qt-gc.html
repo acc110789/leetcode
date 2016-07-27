@@ -1,0 +1,33 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>谈Qt的垃圾回收</title>
+</head>
+
+<body>
+  <h1>谈Qt的垃圾回收</h1>
+  <p>前几天在做<a href="https://git.reviewboard.kde.org/r/128454/" target="_blank">代码审核</a>的时候，<a href="http://blog.broulik.de" target="_blank">Kai Uwe Broulik</a>建议使用<a href="http://doc.qt.io/qt-5/qscopedpointer.html" target="_blank">QScopedPointer</a>来替代手工内存管理，<a href="https://github.com/isoft-linux/kjieba/commit/6d927ce91576cb25a6eeb15d603077784ea3d161" target="_blank">使用后</a>发觉确实节约了不少代码量，但不知道如何实现的，下面就当做是学习笔记吧。</p>
+
+  <h2>Qt也有垃圾回收？</h2>
+  <p>是的！从4.6开始，就可以替代：
+    <pre><code>
+    if (myObj) {
+        delete myObj;
+        myObj = NULL;
+    }
+    </code></pre>
+    使用方法也很简单，在头文件里声明一个<code>QScopedPointer&lt;myObj&gt; myObjPtr;</code>然后在源文件中初始化它：
+    <pre><code>
+    MyClass::MyClass() 
+      : myObjPtr(new myObj)
+    {
+        // your constructor...
+    }
+    </code></pre>
+  </p>
+
+  <h2>Qt怎么实现的？</h2>
+  <p>查看QScopedPointer源代码里的<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.cpp#n55" target="_blank">注释</a>：把<a href="https://en.wikipedia.org/wiki/Stack-based_memory_allocation" target="_blank">基于栈的内存</a>所有权给<a href="https://en.wikipedia.org/wiki/C_dynamic_memory_allocation" target="_blank">堆分配</a>，称之为<a href="https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization" target="_blank">RAII</a>。被这些拽术语的吓到了？那可以看看<a href="http://lotabout.me/about/" target="_blank">三点水</a>的入门级《手把手教你构建 C 语言编译器》讲解的“虚拟”<a href="http://lotabout.me/2015/write-a-C-interpreter-2/" target="_blank">内存</a>布局。QScopedPointer没有拷贝构造函数，也就是不能<code>QScopedPointer(const QScopedPointer&lt;T&gt; &amp;other)</code>，也没有重载=运算符，也就是不能<code>myObjPtr = QScopedPointer&lt;myObj&gt;(new myObj);</code></p>
+
+</body>
+</html>
