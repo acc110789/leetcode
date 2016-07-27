@@ -1,12 +1,12 @@
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <title>谈Qt的垃圾回收</title>
+  <title>也谈Qt的垃圾回收</title>
 </head>
 
 <body>
-  <h1>谈Qt的垃圾回收</h1>
-  <p>前几天在做<a href="https://git.reviewboard.kde.org/r/128454/" target="_blank">代码审核</a>的时候，<a href="http://blog.broulik.de" target="_blank">Kai Uwe Broulik</a>建议使用<a href="http://doc.qt.io/qt-5/qscopedpointer.html" target="_blank">QScopedPointer</a>来替代手工内存管理，<a href="https://github.com/isoft-linux/kjieba/commit/6d927ce91576cb25a6eeb15d603077784ea3d161" target="_blank">使用后</a>发觉确实节约了不少代码量，但不知道如何实现的，下面就当做是学习笔记吧。</p>
+  <h1>也谈Qt的垃圾回收</h1>
+  <p>前几天在做<a href="https://git.reviewboard.kde.org/r/128454/" target="_blank">代码审核</a>的时候，<a href="http://blog.broulik.de" target="_blank">Kai Uwe Broulik</a>建议使用<a href="http://doc.qt.io/qt-5/qscopedpointer.html" target="_blank">QScopedPointer</a>来替代手工内存管理，<a href="https://github.com/isoft-linux/kjieba/commit/6d927ce91576cb25a6eeb15d603077784ea3d161" target="_blank">使用后</a>发觉确实节约了不少代码量，我的CHERRY可以延长寿命了！但是通过简单地阅读代码，发现和Python等动态语言的垃圾回收机制不同，并没有使用引用计数！下面我们来看看：</p>
 
   <h2>Qt也有垃圾回收？</h2>
   <p>是的！从4.6开始，就可以替代：
@@ -16,10 +16,10 @@
         myObj = NULL;
     }
     </code></pre>
-    使用方法也很简单，在头文件里声明一个<code>QScopedPointer&lt;myObj&gt; myObjPtr;</code>然后在源文件中初始化它：
+    使用方法也很简单，在头文件里声明一个<code>QScopedPointer&lt;MyObject&gt; myObjPtr;</code>然后在源文件中初始化它：
     <pre><code>
     MyClass::MyClass() 
-      : myObjPtr(new myObj)
+      : myObjPtr(new MyObject)
     {
         // your constructor...
     }
@@ -27,7 +27,25 @@
   </p>
 
   <h2>Qt怎么实现的？</h2>
-  <p>查看QScopedPointer源代码里的<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.cpp#n55" target="_blank">注释</a>：把<a href="https://en.wikipedia.org/wiki/Stack-based_memory_allocation" target="_blank">基于栈的内存</a>所有权给<a href="https://en.wikipedia.org/wiki/C_dynamic_memory_allocation" target="_blank">堆分配</a>，称之为<a href="https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization" target="_blank">RAII</a>。被这些拽术语的吓到了？那可以看看<a href="http://lotabout.me/about/" target="_blank">三点水</a>的入门级《手把手教你构建 C 语言编译器》讲解的“虚拟”<a href="http://lotabout.me/2015/write-a-C-interpreter-2/" target="_blank">内存</a>布局。QScopedPointer没有拷贝构造函数，也就是不能<code>QScopedPointer(const QScopedPointer&lt;T&gt; &amp;other)</code>，也没有重载=运算符，也就是不能<code>myObjPtr = QScopedPointer&lt;myObj&gt;(new myObj);</code></p>
+  <p>查看QScopedPointer源代码里的<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.cpp#n55" target="_blank">注释</a>：把<a href="https://en.wikipedia.org/wiki/Stack-based_memory_allocation" target="_blank">基于栈的内存</a>所有权给<a href="https://en.wikipedia.org/wiki/C_dynamic_memory_allocation" target="_blank">堆分配</a>，称之为<a href="https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization" target="_blank">RAII</a>。被这些拽术语的吓到了？那可以看看<a href="http://lotabout.me/about/" target="_blank">三点水</a>的入门级《手把手教你构建 C 语言编译器》讲解的“虚拟”<a href="http://lotabout.me/2015/write-a-C-interpreter-2/" target="_blank">内存</a>布局。QScopedPointer没有拷贝构造函数，也就是不能<code>QScopedPointer(const QScopedPointer&lt;T&gt; &amp;other)</code>，也没有重载=运算符，也就是不能<code>myObjPtr = QScopedPointer&lt;MyObject&gt;(new MyObject);</code>QScopedPointer模板类中定义了Cleanup的<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.h#n95" target="_blank">默认参数为</a><code>QScopedPointerDeleter&lt;T&gt;</code>，然后在QScopedPointer的析构函数里<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.h#n107" target="_blank">调用之</a>Cleanup::cleanup，我们可以自定义一个故意不释放内存指针的MyScopedPointerDeleter模板类：
+  <pre><code>
+template &lt;typename T&gt;
+struct MyScopedPointerDeleter
+{
+    static inline void cleanup(T *pointer)
+    {
+        qDebug() &lt;&lt; "\033[31m" &lt;&lt; "DEBUG:" &lt;&lt; __FILE__ &lt;&lt; __PRETTY_FUNCTION__ &lt;&lt; "\033[0m";
+    }
+};
+  </code></pre>
+  那么再使用QScopedPointer&lt;MyObject, MyScopedPointerDeleter&lt;MyObject&gt; &gt;myObjPtr;时，相当于忘记了delete！针对<code>new MyObject[XXX]</code>，QScopedArrayPointer模板类也提供了QScopedPointerArrayDeleter模板类的cleanup，针对C风格的malloc，还提供了QScopedPointerPodDeleter模板类的cleanup。
+  </p>
+
+  <h2>如何实现一个MyScopedPointer？</h2>
+  <p>最简单的实现就是Ctrl+C/Ctrl+V：把qscopedpointer.h<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.h" target="_blank">源代码</a>拷贝出来，把QScoped替换成MyScoped，哦，对了，您不用再搬砖，我已经替大家<a href="https://github.com/xiangzhai/leetcode/tree/master/src/scopedpointer">搬完</a>了！运行效果如下图所示：
+  <img src="./scopedpointer.png">
+  可以发现调用了3次MyObject的构造函数，但只成功（被MyScopedPointer的析构函数）调用了1次MyObject的析构函数，其他2次中一个是忘记delete了new分配的MyObject*，另一个是故意写一个忘记delete的MyCustomScopedPointerDeleter ;-)
+  </p>
 
 </body>
 </html>
