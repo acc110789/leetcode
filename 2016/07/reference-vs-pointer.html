@@ -6,7 +6,105 @@
 
 <body>
   <h1>引用好？还是指针好？</h1>
-  <p></p>
+  <p>由于我忽视了KDE Applications/16.08的<a href="https://mail.kde.org/pipermail/release-team/2016-July/009582.html" target="_blank">冰冻计划</a>，破坏了依赖关系，不得已我得<a href="https://github.com/isoft-linux/libkcddb" target="_blank">临时维护</a>libkcddb，不过8月12日以后，我就不用再fork，<a href="https://mail.kde.org/pipermail/release-team/2016-July/009627.html" target="_blank">可以直接推到</a>上游仓库了！这个等待周期就称之为“冰冻”。所以，我最近会收到依赖libkcddb项目的<a href="https://bugs.kde.org/show_bug.cgi?id=366135" target="_blank">KDEBUG-366135</a>邮件，有意思的是，<a href="mailto:dcb314@hotmail.com">提交者</a>认为如下代码是错误的，让我们看看到底错了没？
+  <pre><code>
+    bool ok; int left = atts.value("left").toInt(&amp;ok);
+    if ((ok) &amp;&amp; (left &gt; 0)) s = s.left(left);
+  </code></pre>
+  他/她认为<q>(error) Uninitialized variable: ok</q>而QString的toInt是怎么<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qstring.h#n610" target="_blank">定义</a>的？
+  <pre><code>
+    int toInt(bool *ok=Q_NULLPTR, int base=10) const;
+  </code></pre>
+  很明显ok是当做指针来赋值的，当字符串toInt转换成功：*ok = true;当转换失败：*ok = false;所以ok没有初始化值不是错的，编译器不会抛出Error！更不会影响后面对ok的条件判断！
+  </p>
+
+  <h2>QString::toInt怎么实现？</h2>
+  <p>QString::toInt的具体实现并不在QString类里，而是在QLocaleData类的<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qlocale.cpp#n3311" target="_blank">bytearrayToLongLong</a>里，是的，Qt就是这么任性！这里，我们按照原始的<code>int toInt(bool *ok=Q_NULLPTR, int base=10) const;</code>的定义，实现一个指针版本的MyString::toInt：
+  <pre><code>
+class MyString
+{
+public:
+    explicit MyString(const char* str) 
+        : m_str(str) 
+    {
+        qDebug() &lt;&lt; "DEBUG:" &lt;&lt; __FILE__ &lt;&lt; __PRETTY_FUNCTION__;
+    }
+
+    virtual ~MyString() 
+    {
+        qDebug() &lt;&lt; "DEBUG:" &lt;&lt; __FILE__ &lt;&lt; __PRETTY_FUNCTION__;
+    }
+
+    int toInt(bool* ok = Q_NULLPTR, int base = 10) const
+    {
+        char* endptr;
+        long val;
+
+        errno = 0;
+        val = strtol(m_str, &amp;endptr, base);
+        if ((errno == ERANGE &amp;&amp; (val == LONG_MAX || val == LONG_MIN)) || 
+            (errno != 0 &amp;&amp; val == 0)) {
+            if (ok != 0)
+                *ok = false;
+            qCritical() &lt;&lt; strerror(errno);
+        }
+        if (endptr == m_str) {
+            if (ok != 0)
+                *ok = false;
+            qCritical() &lt;&lt; "No digits were found";
+        }
+
+        if (ok != 0)
+            *ok = true;
+        if (*endptr != '\0')
+            qInfo() &lt;&lt; "Further characters after number" &lt;&lt; endptr;
+
+        return val;
+    }
+
+private:
+    const char* m_str;
+};
+  </code></pre>
+  我们可以打印出来ok值的变化：
+  <pre><code>
+    <a href="./qt-gc.html">QScopedPointer</a>&lt;MyString&gt; myStrPtr(new MyString("77"));
+    bool ok;
+    qDebug() &lt;&lt; myStrPtr-&gt;toInt(&amp;ok) &lt;&lt; "\033[31m" &lt;&lt; ok &lt;&lt; "\033[0m";
+    qDebug() &lt;&lt; "\033[32m" &lt;&lt; ok &lt;&lt; "\033[0m";
+  </code></pre>
+  由于ok指针的默认参数是Q_NULLPTR，所以首先打印false，再打印出true。
+  我们也可以重载toInt函数，实现一个引用版本：
+  <pre><code>
+    int toInt(bool&amp; ok, int base = 10) const
+    {
+        char* endptr;
+        long val;
+
+        errno = 0;
+        val = strtol(m_str, &amp;endptr, base);
+        if ((errno == ERANGE &amp;&amp; (val == LONG_MAX || val == LONG_MIN)) || 
+            (errno != 0 &amp;&amp; val == 0)) {
+            ok = false;
+            qCritical() &lt;&lt; strerror(errno);
+        }
+        if (endptr == m_str) {
+            ok = false;
+            qCritical() &lt;&lt; "No digits were found";
+        }
+
+        ok = true;
+        if (*endptr != '\0')
+            qInfo() &lt;&lt; "Further characters after number" &lt;&lt; endptr;
+
+        return val;
+    }
+  </code></pre>
+  第一次打印出来的ok值是（C++ uninitialized bool）随机的！第二次打印出来的是true。
+  </p>
+
+  <h2>这种情形下指针更好！</h2>
+  <p>我并不是因为Qt的QString::toInt使用的是指针，所以下这个结论！用指针的好处是可以指定<code>bool*</code>“默认参数”为Q_NULLPTR、nullptr、NULL，而你无法为一个<code>bool&amp;</code>指定默认参数，即不能<code>bool&amp; ok = false</code>，就有可能引入（未初始化布尔类型）随机值问题！</p>
 
 </body>
 </html>
