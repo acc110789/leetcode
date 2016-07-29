@@ -4,14 +4,14 @@ CFLAGS		= -g -O2 -Wall -fPIC -std=gnu99
 CXXFLAGS	= -g -O2 -Wall -fPIC -std=c++14
 CPATH		=
 CXXPATH		=
-LIBPATH		=
+LIBPATH		= -L""
 LIBS		=
 
 all: clonegraph designator designator-cpp
 
 clonegraph:
 	$(CXX) -o clonegraph.o -c $(CXXFLAGS) $(CXXPATH) clonegraph.cpp
-	$(CXX) -o clonegraph clonegraph.o $(LIBPATH) $(LIBS)
+	$(CXX) $(LIBPATH) -o clonegraph clonegraph.o $(LIBS)
 
 designator:
 	$(CC) -o designator.o -c $(CFLAGS) $(CPATH) designator.c
@@ -19,7 +19,7 @@ designator:
 	
 designator-cpp:
 	$(CXX) -o designator-cpp.o -c $(CXXFLAGS) $(CXXPATH) designator.cpp
-	$(CXX) -o designator-cpp designator-cpp.o $(LIBPATH) $(LIBS)
+	$(CXX) $(LIBPATH) -o designator-cpp designator-cpp.o $(LIBS)
 
 clean: 
 	rm -rf *.o clonegraph designator designator-cpp
