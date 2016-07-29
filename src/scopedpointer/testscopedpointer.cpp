@@ -1,7 +1,10 @@
 #include <QDebug>
+#include <QList>
 
 #include "myscopedpointer.h"
 #include "myobject.h"
+
+typedef QSharedPointer<MyObject> mySharedObject;
 
 template <typename T>
 struct MyCustomScopedPointerDeleter
@@ -26,6 +29,10 @@ int main(int argc, char *argv[])
     MyScopedPointer<MyObject, MyCustomScopedPointerDeleter<MyObject> > myObjPtr2(new MyObject);
     
     MyObject *myObjPtr3 = new MyObject; // memory leak
+
+    QList<mySharedObject> mySharedObjList;
+    for (int i = 0; i < 10; i++) 
+        mySharedObjList.append(mySharedObject(new MyObject));
 
     return 0;
 }
