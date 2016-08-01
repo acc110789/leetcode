@@ -47,5 +47,8 @@ struct MyScopedPointerDeleter
   可以发现调用了3次MyObject的构造函数，但只成功（被MyScopedPointer的析构函数）调用了1次MyObject的析构函数，其他2次中一个是忘记delete了new分配的MyObject*，另一个是故意写一个忘记delete的MyCustomScopedPointerDeleter ;-)
   </p>
 
+  <h2>其他的QXXXPointer</h2>
+  <p>上面讲过QScopedPointer没有拷贝构造函数，没有重载=运算符，所以，无法使用QList&lt;QScopedPointer&lt;MyObject&gt; &gt;编译器会报错</p>
+
 </body>
 </html>
