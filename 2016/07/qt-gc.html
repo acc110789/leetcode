@@ -27,7 +27,7 @@
   </p>
 
   <h2>Qt怎么实现的？</h2>
-  <p>查看QScopedPointer源代码里的<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.cpp#n55" target="_blank">注释</a>：把<a href="https://en.wikipedia.org/wiki/Stack-based_memory_allocation" target="_blank">基于栈的内存</a>所有权给<a href="https://en.wikipedia.org/wiki/C_dynamic_memory_allocation" target="_blank">堆分配</a>，称之为<a href="https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization" target="_blank">RAII</a>。被这些拽术语的吓到了？那可以看看<a href="http://lotabout.me/about/" target="_blank">三点水</a>的入门级《手把手教你构建 C 语言编译器》讲解的“虚拟”<a href="http://lotabout.me/2015/write-a-C-interpreter-2/" target="_blank">内存</a>布局。QScopedPointer没有拷贝构造函数，也就是不能<code>QScopedPointer(const QScopedPointer&lt;T&gt; &amp;other)</code>，也没有重载=运算符，也就是不能<code>myObjPtr = QScopedPointer&lt;MyObject&gt;(new MyObject);</code>QScopedPointer模板类中定义了Cleanup的<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.h#n95" target="_blank">默认参数为</a><code>QScopedPointerDeleter&lt;T&gt;</code>，然后在QScopedPointer的析构函数里<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.h#n107" target="_blank">调用之</a>Cleanup::cleanup，我们可以自定义一个故意不释放内存指针的MyScopedPointerDeleter模板类：
+  <p>查看QScopedPointer源代码里的<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.cpp#n55" target="_blank">注释</a>：把<a href="https://en.wikipedia.org/wiki/Stack-based_memory_allocation" target="_blank">基于栈的内存</a>所有权给<a href="https://en.wikipedia.org/wiki/C_dynamic_memory_allocation" target="_blank">堆分配</a>，称之为<a href="https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization" target="_blank">RAII</a>。被这些拽术语的吓到了？那可以看看<a href="http://lotabout.me/about/" target="_blank">三点水</a>的入门级《手把手教你构建 C 语言编译器》讲解的“虚拟”<a href="http://lotabout.me/2015/write-a-C-interpreter-2/" target="_blank">内存</a>布局。QScopedPointer没有拷贝构造函数，也就是不能<code>QScopedPointer(const QScopedPointer&lt;T&gt; &amp;other)</code>，也没有重载赋值运算符，也就是不能<code>myObjPtr = QScopedPointer&lt;MyObject&gt;(new MyObject);</code>QScopedPointer模板类中定义了Cleanup的<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.h#n95" target="_blank">默认参数为</a><code>QScopedPointerDeleter&lt;T&gt;</code>，然后在QScopedPointer的析构函数里<a href="http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/tools/qscopedpointer.h#n107" target="_blank">调用之</a>Cleanup::cleanup，我们可以自定义一个故意不释放内存指针的MyScopedPointerDeleter模板类：
   <pre><code>
 template &lt;typename T&gt;
 struct MyScopedPointerDeleter
@@ -48,7 +48,7 @@ struct MyScopedPointerDeleter
   </p>
 
   <h2>其他的QXXXPointer</h2>
-  <p>上面讲过QScopedPointer没有拷贝构造函数，没有重载=运算符，所以，无法使用QList&lt;QScopedPointer&lt;MyObject&gt; &gt;编译器会报错</p>
+  <p>上面讲过QScopedPointer没有拷贝构造函数，没有重载赋值运算符，所以，无法使用QList&lt;QScopedPointer&lt;MyObject&gt; &gt;编译器会报错：使用了删除的（拷贝构造函数、赋值运算符）函数，这时就得使用<a href="http://doc.qt.io/qt-5/qsharedpointer.html" target="_blank">QSharedPointer</a>，它很像<a href="http://en.cppreference.com/w/cpp/memory/shared_ptr" target="_blank">std::shared_ptr</a>，都具有拷贝构造函数、重载赋值运算符。QSharedPointer可以通过toWeakRef转换成<a href="http://doc.qt.io/qt-5/qweakpointer.html" target="_blank">QWeakPointer</a>，std::shared_ptr也可以转换成<a href="http://en.cppreference.com/w/cpp/memory/weak_ptr" target="_blank">std::weak_ptr</a>来检查对象是否被销毁。</p>
 
 </body>
 </html>
