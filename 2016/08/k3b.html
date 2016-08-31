@@ -10,13 +10,28 @@
   <img src="./k3b.png" />
 
   <h2>Be a maintainer</h2>
-  <p>I fixed <a href="https://bugs.kde.org/show_bug.cgi?id=365089" target="_blank">KDEBUG-365089</a> my colleague, found that it fell into the infinte loop when selecting file and burning ISO, reported the bug to me in the internal <a href="https://www.bugzilla.org/" target="_blank">bugzilla</a>, then I <a href="https://mail.kde.org/pipermail/release-team/2016-July/009570.html" target="_blank">sent an email</a> to KDE release-team for asking whether or not make a tag for kf5 branch with <a href="https://git.reviewboard.kde.org/r/128376" target="_blank">my patch</a>. Fortunatly <a href="http://www.purinchu.net/wp/" target="_blank">Michael Pyne</a> quickly <a href="https://mail.kde.org/pipermail/release-team/2016-July/009571.html" target="_blank">repiled me</a>, and he asked did you want to take over maintenance of K3B? I found out previouse maintainers and core developers' email via git log, then email them, but *NO* reply yet, so I am maintaing K3B now. And my sincere thank will go to <a href="https://www.kdab.com/~dfaure/" target="_blank">David Faure</a>, he <a href="https://mail.kde.org/pipermail/release-team/2016-July/009583.html" target="_blank">covered me</a> owing to I broke the dependency freeze of <a href="https://github.com/KDE/libkcddb" target="_blank">libkcddb</a> regarding the Applications/16.08 release. So I <a href="https://mail.kde.org/pipermail/release-team/2016-July/009628.html" target="_blank">migrated</a> all projects requires KF5Cddb, and right now libkcddb is KF5 ready and next freeze plan, for example Application/16.09, here comes fresh K3B based on KF5 and Qt5.</p>
+  <p>I fixed <a href="https://bugs.kde.org/show_bug.cgi?id=365089" target="_blank">KDEBUG-365089</a> my colleague, found that it fell into the infinte loop when selecting file and burning ISO, reported the bug to me in the internal <a href="https://www.bugzilla.org/" target="_blank">bugzilla</a>, then I <a href="https://mail.kde.org/pipermail/release-team/2016-July/009570.html" target="_blank">sent an email</a> to KDE release-team for asking whether or not make a tag for kf5 branch with <a href="https://git.reviewboard.kde.org/r/128376" target="_blank">my patch</a>. Fortunatly <a href="http://www.purinchu.net/wp/" target="_blank">Michael Pyne</a> quickly <a href="https://mail.kde.org/pipermail/release-team/2016-July/009571.html" target="_blank">repiled me</a>, and he asked did you want to take over maintenance of K3B? I found out previouse maintainers and core developers' email via git log, then email them, but *NO* reply yet, so I am maintaing it now.</p>
+  
+  <p>And my sincere thank will go to <a href="https://www.kdab.com/~dfaure/" target="_blank">David Faure</a>, he <a href="https://mail.kde.org/pipermail/release-team/2016-July/009583.html" target="_blank">covered me</a> owing to I broke the dependency freeze of <a href="https://github.com/KDE/libkcddb" target="_blank">libkcddb</a> regarding the Applications/16.08 release. So I <a href="https://mail.kde.org/pipermail/release-team/2016-July/009628.html" target="_blank">migrated</a> all projects requires KF5Cddb, and right now libkcddb is KF5 ready!</p>
 
   <h2>Bug hunter</h2>
-  <p>In addition to <a href="https://bugs.kde.org/show_bug.cgi?id=365089" target="_blank">KDEBUG-365089</a>, I also fixed <a href="https://github.com/KDE/k3b/commit/7fe2bbecc5b5ff386332cc0a8efa3d05d7f8edeb" target="_blank">open *.k3b project</a>, <a href="https://github.com/KDE/k3b/commit/285e7da43f98e497280832f6e54f58ab6d0a0833" target="_blank">save *.k3b project</a>, <a href="https://github.com/KDE/k3b/commit/d2a844994bcb1c5ca7c0d6c45183df1bd9f3b9e2" target="_blank">add local file</a> issues. And I am looking for K3B or KF5's relative bugs via <a href="https://mail.kde.org/pipermail/k3b/" target="_blank">mailing list</a>. So please <a href="https://bugs.kde.org/" target="_blank">report bug</a> and CC to xiangzhai83@gmail.com if you found one.</p>
+  <p>I am looking for relative bugs via <a href="https://mail.kde.org/pipermail/k3b/" target="_blank">mailing list</a>. So please <a href="https://bugs.kde.org/" target="_blank">report bug</a> and CC to xiangzhai83@gmail.com if you found one.</p>
 
+  <ul>
+  <li><a href="https://bugs.kde.org/show_bug.cgi?id=367639" target="_blank">KDEBUG-367639</a></li>
+  <p>please remove wodim from <a href="http://www.cdrkit.org/" target="_blank">cdrkit</a> (CD only, DVD deprecated, unmaintained, cdrkit's website was down, *NO* rpm package for it any more), but install <a href="https://www.archlinux.org/packages/?name=cdrtools" target="_blank">cdrtools</a> A.K.A <a href="http://cdrtools.sourceforge.net/private/cdrecord.html" target="_blank">cdrecord</a> instead.</p>
+
+  <li><a href="https://bugs.kde.org/show_bug.cgi?id=360170" target="_blank">KDEBUG-360170</a></li>
+  <p>transcode failed to rip videodvd (see <a href="https://pbs.twimg.com/media/CrJ54YmVYAEDLL9.jpg" target="_blank">screenshot</a>) using mplayer to test the output *.avi, and debug info <a href="https://gist.github.com/xiangzhai/378d092bfec1d5abd76d37c8c7d326f6" target="_blank">goes here</a>. There is a looping failure for libdvdread's <a href="https://code.videolan.org/videolan/libdvdread/blob/master/src/nav_read.c#L264" target="_blank"><code>CHECK_VALUE(dsi-&gt;dsi_gi.zero1 == 0)</code></a>, but it doesn't matter, using <a href="http://tuxtweaks.com/2014/02/rip-dvd-mplayer/" target="_blank">mplayer to rip videodvd</a> <code>mplayer -dumpstream dvd:////dev/sr0 -nocache -dumpfile test.mpg</code> also print out such stuff! But pay more attention to ffmpeg libavcodec's warning: <pre>
+  [mpeg4 @ 0x55a0daf96a40] AVFrame.format is not set
+  [mpeg4 @ 0x55a0daf96a40] AVFrame.width or height is not set
+  </pre>
+  I <a href="https://bitbucket.org/france/transcode-tcforge/issues/8/rip-dvd-avframeformat-is-not-set" target="_blank">reported the issue</a> to ?UPSTREAM? ArchLinux packager choosing <a href="https://bitbucket.org/france/transcode-tcforge/downloads" target="_blank">transcode-1.1.7</a>'s tarball, but transcoding.org domain relocating to https://bitbucket.org/achurch_/transcode/wiki/Home, so I have no idea what happened - transcode v1.2.0-d302c3a215bb, and it failed to be built for ArchLinux, then I <a href="https://bitbucket.org/achurch_/transcode/pull-requests/1/migrate-to-ffmpeg-313/diff" target="_blank">migrated to ffmpeg v3.1.3</a>, it needs to test whether or not able to rip videodvd.
+  </p>
+  </ul>
+  
   <h2>Dependence</h2>
-  I use <a href="http://www.i-soft.com.cn/type/1/749.jhtml" target="_blank">iSOFTLinux</a> (rpm), <a href="https://www.archlinux.org/" target="_blank">ArchLinux</a> (pacman) and <a href="https://spins.fedoraproject.org/kde/" target="_blank">Fedora</a> (rpm). please run <code>sudo dnf upgrade --refresh</code> or <code>sudo pacman -Syu</code> to upgrade your system.
+  <p>I use iSOFTLinux (<a href="https://github.com/isoft-linux/rpm/blob/isoftapp/README.md" target="_blank">M.O.D rpm</a>), <a href="https://www.archlinux.org/" target="_blank">ArchLinux</a> (pacman) and <a href="https://spins.fedoraproject.org/kde/" target="_blank">Fedora</a> (rpm). please run <code>sudo dnf upgrade --refresh</code> or <code>sudo pacman -Syu</code> to upgrade your system.
 
   <ul>
     <li><a href="https://github.com/KDE/extra-cmake-modules" target="_blank">ECM</a></li>
@@ -35,7 +50,7 @@
     <li><a href="http://www.mega-nerd.com/libsndfile" target="_blank">libsndfile</a></li>
     <li><a href="http://lame.sourceforge.net" target="_blank">lame</a></li>
     <li><a href="http://www.vorbis.com" target="_blank">ogg-vorbis</a></li>
-    <li><a href="http://cdrtools.sourceforge.net/private/cdrecord.html" target="_blank">cdrecord</a> please remove 'wodim' from cdrkit (CD only, DVD deprecated, unmaintained)</li>
+    <li><a href="http://cdrtools.sourceforge.net/private/cdrecord.html" target="_blank">cdrecord</a></li>
   </ul>
 
   <h2>Build</h2>
@@ -54,7 +69,7 @@
   </code></pre>
 
   <h2>Implementating NEW features</h2>
-  <p>Firstly, as a KDE developer, I need to fix high priority bugs relative K3B and KF5 components, but I will pay some attention to the implementation of NEW features reported by users. In fact what I fixed <a href="https://bugs.kde.org/show_bug.cgi?id=365604" target="_blank">KDEBUG-365604</a> is just the W.I.P implementation of <a href="https://github.com/KDE/k3b/tree/save-document-data" target="_blank">saving document data</a> for videodvd.</p>
+  <p>Firstly, as a KDE developer, I need to fix high priority bugs, but I will pay some attention to the implementation of NEW features reported by users. In fact what I fixed <a href="https://bugs.kde.org/show_bug.cgi?id=365604" target="_blank">KDEBUG-365604</a> is just the W.I.P implementation of <a href="https://github.com/KDE/k3b/tree/save-document-data" target="_blank">saving document data</a> for videodvd.</p>
 
 </body>
 </html>
