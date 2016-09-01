@@ -21,7 +21,7 @@
   <li><a href="https://bugs.kde.org/show_bug.cgi?id=367639" target="_blank">KDEBUG-367639</a></li>
   <p>Please remove wodim (<a href="https://lists.debian.org/debian-devel-announce/2006/09/msg00002.html" target="_blank">forked cdrecord</a>) from <a href="https://en.wikipedia.org/wiki/Cdrkit" target="_blank">cdrkit</a> (CD only, DVD deprecated, unmaintained), <a href="http://www.cdrkit.org" target="_blank">website</a> was down, <a href="http://cdrkit.org/releases/cdrkit-1.1.11.tar.gz" target="_blank">release tarball</a> is *NOT* available, <a href="https://anonscm.debian.org/viewvc/debburn/cdrkit/" target="_blank">svn repos</a> is so quiet! But install <a href="https://en.wikipedia.org/wiki/Cdrtools" target="_blank">cdrtools</a> A.K.A <a href="http://cdrtools.sourceforge.net/private/cdrecord.html" target="_blank">cdrecord</a> instead.</p>
 
-  <p>growisofs from <a href="http://fy.chalmers.se/~appro/linux/DVD+RW/" target="_blank">dvd+rw-tools</a> (DVD and BD only) is a frontend to mkisofs (a utility of cdrtools), so the same story as wodim above. As <a href="http://fy.chalmers.se/~appro/linux/DVD+RW/tools/growisofs.c" target="_blank">growisofs.c</a> changlog described: <pre>
+  <p>growisofs from <a href="http://fy.chalmers.se/~appro/linux/DVD+RW/" target="_blank">dvd+rw-tools</a> (DVD and BD only) is a frontend to mkisofs, as <a href="http://fy.chalmers.se/~appro/linux/DVD+RW/tools/growisofs.c" target="_blank">growisofs.c</a> changlog described: <pre>
    * - copy volume descriptors if -C was specified with -M /dev/dvd=image             
    *   [by request from K3b];
   </pre>then how growisofs parsing -C parameter?<pre><code>
