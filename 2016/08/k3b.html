@@ -19,7 +19,22 @@
 
   <ul>
   <li><a href="https://bugs.kde.org/show_bug.cgi?id=367639" target="_blank">KDEBUG-367639</a></li>
-  <p>please remove wodim from <a href="http://www.cdrkit.org/" target="_blank">cdrkit</a> (CD only, DVD deprecated, unmaintained, cdrkit's website was down, *NO* rpm package for it any more), but install <a href="https://www.archlinux.org/packages/?name=cdrtools" target="_blank">cdrtools</a> A.K.A <a href="http://cdrtools.sourceforge.net/private/cdrecord.html" target="_blank">cdrecord</a> instead.</p>
+  <p>Please remove wodim (<a href="https://lists.debian.org/debian-devel-announce/2006/09/msg00002.html" target="_blank">forked cdrecord</a>) from <a href="https://en.wikipedia.org/wiki/Cdrkit" target="_blank">cdrkit</a> (CD only, DVD deprecated, unmaintained), <a href="http://www.cdrkit.org" target="_blank">website</a> was down, <a href="http://cdrkit.org/releases/cdrkit-1.1.11.tar.gz" target="_blank">release tarball</a> is *NOT* available, <a href="https://anonscm.debian.org/viewvc/debburn/cdrkit/" target="_blank">svn repos</a> is so quiet! But install <a href="https://en.wikipedia.org/wiki/Cdrtools" target="_blank">cdrtools</a> A.K.A <a href="http://cdrtools.sourceforge.net/private/cdrecord.html" target="_blank">cdrecord</a> instead.</p>
+
+  <p>growisofs from <a href="http://fy.chalmers.se/~appro/linux/DVD+RW/" target="_blank">dvd+rw-tools</a> (DVD and BD only) is a frontend to mkisofs (a utility of cdrtools), so the same story as wodim above. As <a href="http://fy.chalmers.se/~appro/linux/DVD+RW/tools/growisofs.c" target="_blank">growisofs.c</a> changlog described: <pre>
+   * - copy volume descriptors if -C was specified with -M /dev/dvd=image             
+   *   [by request from K3b];
+  </pre>then how growisofs parsing -C parameter?<pre><code>
+        else if (argv[i][1] == 'C' || !strncmp(opt,"-cdrecord-params",16))
+	    { char *s=argv[i+1];
+	      int   i1,i2;
+		if (argv[i][1]=='C' &amp;&amp; len&gt;2)	s=argv[i]+2;
+		else				i++;
+		if (sscanf (s,"%d,%d",&amp;i1,&amp;i2) == 2)
+		    alleged_next_session=i2;
+		continue;
+	    }
+  </code></pre>so if <code>growisofs -C 0,0 ...</code>, the <code>char* s</code> is 0,0 and alleged_next_session is 0, and construct next session for you <code>next_session=setup_C_parm(C_parm,saved_descriptors);</code>, then if <code>alleged_next_session!=next_session</code>, it will throw '-C argument is insane' error!</p>
 
   <li><a href="https://bugs.kde.org/show_bug.cgi?id=360170" target="_blank">KDEBUG-360170</a></li>
   <p>It is not encrypted issue, <a href="http://www.videolan.org/developers/libdvdcss.html" target="_blank">libdvdcss</a> is able to access and unscramb DVDs encrypted with the Content Scramble System (CSS), but transcode failed to rip videodvd (see <a href="https://pbs.twimg.com/media/CrJ54YmVYAEDLL9.jpg" target="_blank">screenshot</a>) using mplayer to test the output *.avi, and debug info <a href="https://gist.github.com/xiangzhai/378d092bfec1d5abd76d37c8c7d326f6" target="_blank">goes here</a>. There is a looping failure for libdvdread's <a href="https://code.videolan.org/videolan/libdvdread/blob/master/src/nav_read.c#L264" target="_blank"><code>CHECK_VALUE(dsi-&gt;dsi_gi.zero1 == 0)</code></a>, but it doesn't matter, using <a href="http://tuxtweaks.com/2014/02/rip-dvd-mplayer/" target="_blank">mplayer to rip videodvd</a> <code>mplayer -dumpstream dvd:////dev/sr0 -nocache -dumpfile test.mpg</code> also print out such stuff! But pay more attention to ffmpeg libavcodec's warning: <pre>
