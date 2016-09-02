@@ -17,9 +17,6 @@
   <h2>Bug hunter</h2>
   <p>I am looking for relative bugs via <a href="https://mail.kde.org/pipermail/k3b/" target="_blank">mailing list</a>. So please <a href="https://bugs.kde.org/" target="_blank">report bug</a> and CC to xiangzhai83@gmail.com if you found one.</p>
 
-  <p>As a maintainer for debuger, if *NOT* have CD/DVD driver nor empty CD/DVD/Blu-ray disc to test, <a href="http://cdemu.sourceforge.net/" target="">CDEmu</a> is a good choice ;-)<pre>
-  cdemu create-blank --writer-id=WRITER-ISO --medium-type=dvd+r 0 ~/virt.iso</pre>then you can burning ArchLinux or Fedora iso to this virtual DVD disc media by K3B or command line <pre>cdrecord dev=/dev/sr0 ~/Download/archlinux-2016.05.01-dual.iso</pre></p>
-
   <ul>
   <li><a href="https://bugs.kde.org/show_bug.cgi?id=367639" target="_blank">KDEBUG-367639</a></li>
   <p>Please remove wodim (<a href="https://lists.debian.org/debian-devel-announce/2006/09/msg00002.html" target="_blank">forked cdrecord</a>) from <a href="https://en.wikipedia.org/wiki/Cdrkit" target="_blank">cdrkit</a> (CD only, DVD deprecated, unmaintained), <a href="http://www.cdrkit.org" target="_blank">website</a> was down, <a href="http://cdrkit.org/releases/cdrkit-1.1.11.tar.gz" target="_blank">release tarball</a> is *NOT* available, <a href="https://anonscm.debian.org/viewvc/debburn/cdrkit/" target="_blank">svn repos</a> is so quiet! But install <a href="https://en.wikipedia.org/wiki/Cdrtools" target="_blank">cdrtools</a> A.K.A <a href="http://cdrtools.sourceforge.net/private/cdrecord.html" target="_blank">cdrecord</a> instead.</p>
@@ -37,7 +34,7 @@
 		    alleged_next_session=i2;
 		continue;
 	    }
-  </code></pre>so if <code>growisofs -C 0,0 ...</code>, the <code>char* s</code> is 0,0 and alleged_next_session is 0, and construct next session for you <code>next_session=setup_C_parm(C_parm,saved_descriptors);</code>, then if <code>alleged_next_session!=next_session</code>, it will throw '-C argument is insane' error!</p>
+  </code></pre>so if wrongly use <code>growisofs -C 0,0 ...</code> the <code>char* s</code> is <code>0,0</code> and alleged_next_session is <code>0</code> then construct next session for you <code>next_session=setup_C_parm(C_parm,saved_descriptors);</code>, then if <code>alleged_next_session!=next_session</code>, it will throw '-C argument is insane' error!</p>
 
   <li><a href="https://bugs.kde.org/show_bug.cgi?id=360170" target="_blank">KDEBUG-360170</a></li>
   <p>It is not encrypted issue, <a href="http://www.videolan.org/developers/libdvdcss.html" target="_blank">libdvdcss</a> is able to access and unscramb DVDs encrypted with the Content Scramble System (CSS), but transcode failed to rip videodvd (see <a href="https://pbs.twimg.com/media/CrJ54YmVYAEDLL9.jpg" target="_blank">screenshot</a>) using mplayer to test the output *.avi, and debug info <a href="https://gist.github.com/xiangzhai/378d092bfec1d5abd76d37c8c7d326f6" target="_blank">goes here</a>. There is a looping failure for libdvdread's <a href="https://code.videolan.org/videolan/libdvdread/blob/master/src/nav_read.c#L264" target="_blank"><code>CHECK_VALUE(dsi-&gt;dsi_gi.zero1 == 0)</code></a>, but it doesn't matter, using <a href="http://tuxtweaks.com/2014/02/rip-dvd-mplayer/" target="_blank">mplayer to rip videodvd</a> <code>mplayer -dumpstream dvd:////dev/sr0 -nocache -dumpfile test.mpg</code> also print out such stuff! But pay more attention to ffmpeg libavcodec's warning: <pre>
@@ -48,6 +45,10 @@
   </p>
   </ul>
   
+  <h2>Test enviroment</h2>
+  <p>As a maintainer or debuger, at least need <a href="https://pbs.twimg.com/media/CrT91GfVUAAyX9Z.jpg" target="_blank">plugable CD/DVD driver</a>, some <a href="https://pbs.twimg.com/media/CrT91x6UAAA5Hmd.jpg" target="_blank">Audio CD and Video DVD</a>, but if *NOT* have CD/DVD driver nor empty CD/DVD/Blu-ray disc to test, <a href="http://cdemu.sourceforge.net/" target="">CDEmu</a> is a good choice ;-)<pre>
+  cdemu create-blank --writer-id=WRITER-ISO --medium-type=dvd+r 0 ~/virt.iso</pre>then you can burning ArchLinux or Fedora iso to this virtual DVD disc media by K3B or command line <pre>cdrecord dev=/dev/sr0 ~/Download/archlinux-2016.05.01-dual.iso</pre></p>
+
   <h2>Dependence</h2>
   <p>I use iSOFTLinux (<a href="https://github.com/isoft-linux/rpm/blob/isoftapp/README.md" target="_blank">M.O.D rpm</a>), <a href="https://www.archlinux.org/" target="_blank">ArchLinux</a> (pacman) and <a href="https://spins.fedoraproject.org/kde/" target="_blank">Fedora</a> (rpm). please run <code>sudo dnf upgrade --refresh</code> or <code>sudo pacman -Syu</code> to upgrade your system.
 
